@@ -96,7 +96,7 @@ export default function Auth() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="flex-1 -mt-8 px-4"
+        className="flex-1 -mt-8 px-4 z-10"
       >
         <div className="bg-card rounded-2xl shadow-eco-lg border border-border p-6 max-w-md mx-auto">
           <div className="flex bg-muted rounded-xl p-1 mb-6">
