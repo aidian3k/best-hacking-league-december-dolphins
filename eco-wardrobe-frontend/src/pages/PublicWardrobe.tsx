@@ -30,6 +30,7 @@ export default function PublicWardrobe() {
   }, [products]);
 
   const filteredProducts = useMemo(() => {
+    if (!products) return [];
     if (selectedCategory === 'all') return products;
     return products.filter(p => p.category === selectedCategory);
   }, [products, selectedCategory]);
