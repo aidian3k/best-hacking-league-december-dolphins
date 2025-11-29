@@ -1,19 +1,46 @@
 import { useQuery } from '@tanstack/react-query';
 import { Product } from '@/types/product';
-import { mockPassports, influencerProducts } from '@/data/mockPassports';
-import { convertDPPtoProduct } from '@/types/digitalProductPassport';
+import { convertDPPtoProduct, convertBackendProductToDPP } from '@/types/digitalProductPassport';
+import { BackendWardrobeItemsDTO } from './backendTypes';
+
+const API_BASE_URL = 'http://localhost:8080/api';
 
 async function fetchUserProducts(userId: string): Promise<Product[]> {
-  await new Promise(resolve => setTimeout(resolve, 500));
+  const response = await fetch(`${API_BASE_URL}/products/${userId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 
-  const productIds = influencerProducts[userId] || [];
-  const passports = productIds
-    .map(id => mockPassports[id])
-    .filter((passport): passport is typeof mockPassports[string] => passport !== undefined);
+  if (!response.ok) {
+    throw new Error('Błąd pobierania produktów');
+  }
 
-  return passports.map(dpp => {
+  const data: BackendWardrobeItemsDTO = await response.json();
+  
+  if (!data.products || data.products.length === 0) {
+    return [];
+  }
+
+  return data.products.map(backendProduct => {
+    const dpp = convertBackendProductToDPP(backendProduct);
     const converted = convertDPPtoProduct(dpp);
-    return converted.product;
+    
+    const product = converted.product;
+    
+    if (backendProduct.image && Array.isArray(backendProduct.image) && backendProduct.image.length > 0) {
+      try {
+        const bytes = new Uint8Array(backendProduct.image);
+        const binary = String.fromCharCode(...bytes);
+        const base64Image = btoa(binary);
+        product.image = base64Image;
+      } catch (error) {
+        console.warn('Błąd konwersji obrazu:', error);
+      }
+    }
+    
+    return product;
   });
 }
 

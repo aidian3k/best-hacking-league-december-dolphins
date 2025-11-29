@@ -1,7 +1,7 @@
 import { Product, categoryLabels } from '@/types/product';
 import { EcoScore } from '@/components/ui/EcoScore';
 import { ProductImagePlaceholder } from '@/components/ui/ProductImagePlaceholder';
-import { cn } from '@/lib/utils';
+import { cn, getProductImageUrl } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Recycle, Wrench, Heart } from 'lucide-react';
 import { useState } from 'react';
@@ -13,7 +13,8 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onClick, className }: ProductCardProps) {
-  const hasValidImage = product.imageUrl && product.imageUrl !== '/api/placeholder/400/300';
+  const imageUrl = getProductImageUrl(product);
+  const hasValidImage = imageUrl && imageUrl !== '/api/placeholder/400/300';
   const [imageError, setImageError] = useState(false);
 
   return (
@@ -30,7 +31,7 @@ export function ProductCard({ product, onClick, className }: ProductCardProps) {
       <div className="relative aspect-square bg-muted">
         {hasValidImage && !imageError ? (
           <img
-            src={product.imageUrl}
+            src={imageUrl}
             alt={product.name}
             className="w-full h-full object-cover"
             onError={() => setImageError(true)}
@@ -76,7 +77,8 @@ interface ProductCardMiniProps {
 }
 
 export function ProductCardMini({ product, onClick }: ProductCardMiniProps) {
-  const hasValidImage = product.imageUrl && product.imageUrl !== '/api/placeholder/400/300';
+  const imageUrl = getProductImageUrl(product);
+  const hasValidImage = imageUrl && imageUrl !== '/api/placeholder/400/300';
   const [imageError, setImageError] = useState(false);
 
   return (
@@ -87,7 +89,7 @@ export function ProductCardMini({ product, onClick }: ProductCardMiniProps) {
     >
       {hasValidImage && !imageError ? (
         <img
-          src={product.imageUrl}
+          src={imageUrl}
           alt={product.name}
           className="w-12 h-12 rounded-lg object-cover"
           onError={() => setImageError(true)}

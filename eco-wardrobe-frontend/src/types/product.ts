@@ -15,6 +15,7 @@ export interface Product {
   brand: string;
   category: Category;
   imageUrl: string;
+  image?: string; // base64 string (bez prefiksu data:image/...)
   materials: Material[];
   ecoScore: number; // 0-100
   ecoRating: EcoRating;

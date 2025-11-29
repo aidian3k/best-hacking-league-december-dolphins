@@ -1,23 +1,57 @@
 import { useMutation } from '@tanstack/react-query';
 import { User, LoginCredentials, RegisterData } from '@/types/user';
 
-async function loginUser(credentials: LoginCredentials): Promise<User> {
-  await new Promise(resolve => setTimeout(resolve, 1000));
+const API_BASE_URL = 'http://localhost:8080/api';
 
+async function loginUser(credentials: LoginCredentials): Promise<User> {
+  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: credentials.email,
+      password: credentials.password,
+    }),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Nieprawidłowy email lub hasło');
+    }
+    throw new Error('Błąd logowania');
+  }
+
+  const data = await response.json();
   return {
-    id: '550e8400-e29b-41d4-a716-446655440000',
-    email: credentials.email,
-    name: 'Jan Kowalski',
+    id: data.id,
+    email: data.email,
+    name: data.name,
   };
 }
 
 async function registerUser(data: RegisterData): Promise<User> {
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: data.email,
+      name: data.name,
+      password: data.password,
+    }),
+  });
 
+  if (!response.ok) {
+    throw new Error('Błąd rejestracji');
+  }
+
+  const userData = await response.json();
   return {
-    id: '660e8400-e29b-41d4-a716-446655440001',
-    email: data.email,
-    name: data.name,
+    id: userData.id,
+    email: userData.email,
+    name: userData.name,
   };
 }
 

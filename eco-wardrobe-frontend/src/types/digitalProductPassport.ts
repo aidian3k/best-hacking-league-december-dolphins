@@ -65,42 +65,102 @@ export interface DigitalProductPassport {
   };
 }
 
-// Funkcja do konwersji Digital Product Passport na Product
-export function convertDPPtoProduct(dpp: DigitalProductPassport | { productPassport: DigitalProductPassport }): any {
-  const passport = 'productPassport' in dpp ? dpp.productPassport : dpp;
-  // Obliczanie eco score na podstawie różnych czynników
-  let ecoScore = 100;
+export function convertBackendProductToDPP(backendProduct: any): DigitalProductPassport {
+  return {
+    version: '1.0',
+    product: {
+      productId: backendProduct.id,
+      gtin: backendProduct.productInformation?.gtin || '',
+      name: backendProduct.productInformation?.productName || '',
+      category: backendProduct.productInformation?.category || '',
+      brand: backendProduct.productInformation?.brand || '',
+      model: backendProduct.productInformation?.model || '',
+    },
+    materialComposition: (backendProduct.materialCompositions || []).map((mc: any) => ({
+      material: mc.materialName || '',
+      percentage: mc.compositionPercentage || 0,
+      certifications: mc.certifications || [],
+    })),
+    environmentalImpact: {
+      carbonFootprint_kgCO2e: backendProduct.productEnvironmentImpact?.carbonFootprintKgCO2e || 0,
+      waterUsage_liters: backendProduct.productEnvironmentImpact?.waterUsageLiters || 0,
+      energy_kWh: backendProduct.productEnvironmentImpact?.energyKwh || 0,
+      recycledContentPercentage: backendProduct.productEnvironmentImpact?.recycledContentPercentage || 0,
+      hazardousSubstances: backendProduct.productEnvironmentImpact?.hazardousSubstances || [],
+    },
+    manufacturing: {
+      producer: {
+        name: backendProduct.manufacturing?.producer?.producerName || '',
+        address: backendProduct.manufacturing?.producer?.address || '',
+        contact: backendProduct.manufacturing?.producer?.contact || '',
+      },
+      productionSites: (backendProduct.manufacturing?.productionSites || []).map((ps: any) => ({
+        country: ps.country || '',
+        facilityId: ps.facilityId || '',
+        processes: ps.processes || [],
+      })),
+      manufacturingDate: backendProduct.manufacturing?.manufacturingDate || '',
+    },
+    durabilityAndCare: {
+      expectedLifetime_cycles: backendProduct.durabilityAndCare?.expectedLifetimeCycles || 0,
+      washInstructions: backendProduct.durabilityAndCare?.washInstructions || '',
+      repairability: {
+        repairDifficulty: backendProduct.durabilityAndCare?.repairability?.repairDifficulty || 'medium',
+        sparePartsAvailable: backendProduct.durabilityAndCare?.repairability?.sparePartsAvailable || false,
+        repairGuidesURL: backendProduct.durabilityAndCare?.repairability?.repairGuidesURL || '',
+      },
+    },
+    endOfLife: {
+      recyclabilityPercentage: backendProduct.endOfLife?.recyclabilityPercentage || 0,
+      disassemblyInstructionsURL: backendProduct.endOfLife?.disassemblyInstructionsURL || '',
+      takeBackPrograms: (backendProduct.endOfLife?.takeBackPrograms || []).map((tbp: any) => ({
+        programName: tbp.programName || '',
+        url: tbp.url || '',
+      })),
+    },
+    supplyChainTraceability: {
+      chain: (backendProduct.supplyChainTraceability?.chain || []).map((scs: any) => ({
+        stage: scs.stage || '',
+        supplier: scs.supplier || '',
+        country: scs.country || '',
+        certificate: scs.certificate || undefined,
+      })),
+    },
+    metadata: {
+      passportCreated: backendProduct.metadata?.passportCreated || '',
+      passportLastUpdated: backendProduct.metadata?.passportLastUpdated || '',
+      dataOwner: backendProduct.metadata?.dataOwner || '',
+    },
+  };
+}
 
-  // Impact śladu węglowego (maks -30 punktów)
+export function convertDPPtoProduct(dpp: DigitalProductPassport | { productPassport: DigitalProductPassport }): any {
+  const passport = 'productPassport' in dpp ? dpp.productPassport : dpp;  let ecoScore = 100;
+
   if (passport.environmentalImpact.carbonFootprint_kgCO2e > 5) {
     ecoScore -= Math.min(30, (passport.environmentalImpact.carbonFootprint_kgCO2e - 5) * 5);
   }
 
-  // Recycled content (+10 punktów jeśli > 50%)
   if (passport.environmentalImpact.recycledContentPercentage > 50) {
     ecoScore += 10;
   } else if (passport.environmentalImpact.recycledContentPercentage === 0) {
     ecoScore -= 15;
   }
 
-  // Substancje niebezpieczne (-20 punktów)
   if (passport.environmentalImpact.hazardousSubstances.length > 0) {
     ecoScore -= 20;
   }
 
-  // Recyklowalność
   if (passport.endOfLife.recyclabilityPercentage < 50) {
     ecoScore -= 20;
   }
 
-  // Naprawialność
   if (passport.durabilityAndCare.repairability.repairDifficulty === 'high') {
     ecoScore -= 10;
   } else if (passport.durabilityAndCare.repairability.repairDifficulty === 'low') {
     ecoScore += 5;
   }
 
-  // Certyfikaty materiałów
   const hasCertifications = passport.materialComposition.some(m => m.certifications.length > 0);
   if (hasCertifications) {
     ecoScore += 10;
@@ -121,7 +181,6 @@ export function convertDPPtoProduct(dpp: DigitalProductPassport | { productPassp
 
   const repairable = passport.durabilityAndCare.repairability.repairDifficulty !== 'high';
 
-  // Environmental impact score (1-10, lower is better)
   const environmentalImpact = Math.min(10, Math.max(1,
     Math.round(passport.environmentalImpact.carbonFootprint_kgCO2e / 2)
   ));
