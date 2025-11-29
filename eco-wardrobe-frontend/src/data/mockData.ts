@@ -113,7 +113,7 @@ export const mockProducts: Product[] = [
     name: 'Fast Fashion Polo',
     brand: 'QuickWear',
     category: 'koszulki',
-    imageUrl: 'https://images.unsplash.com/photo-1625910513413-5fc5dc9a7a0a?w=400',
+    imageUrl: 'https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=400',
     materials: [
       { name: 'Poliester', percentage: 65, isNatural: false, isRecycled: false },
       { name: 'Bawełna', percentage: 35, isNatural: true, isRecycled: false },

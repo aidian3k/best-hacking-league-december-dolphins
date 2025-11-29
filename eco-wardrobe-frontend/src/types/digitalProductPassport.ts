@@ -1,117 +1,113 @@
 export interface DigitalProductPassport {
-  productPassport: {
-    version: string;
-    product: {
-      productId: string;
-      gtin: string;
+  version: string;
+  product: {
+    productId: string;
+    gtin: string;
+    name: string;
+    category: string;
+    brand: string;
+    model: string;
+  };
+  materialComposition: Array<{
+    material: string;
+    percentage: number;
+    certifications: string[];
+  }>;
+  environmentalImpact: {
+    carbonFootprint_kgCO2e: number;
+    waterUsage_liters: number;
+    energy_kWh: number;
+    recycledContentPercentage: number;
+    hazardousSubstances: string[];
+  };
+  manufacturing: {
+    producer: {
       name: string;
-      category: string;
-      brand: string;
-      model: string;
+      address: string;
+      contact: string;
     };
-    materialComposition: Array<{
-      material: string;
-      percentage: number;
-      certifications: string[];
+    productionSites: Array<{
+      country: string;
+      facilityId: string;
+      processes: string[];
     }>;
-    environmentalImpact: {
-      carbonFootprint_kgCO2e: number;
-      waterUsage_liters: number;
-      energy_kWh: number;
-      recycledContentPercentage: number;
-      hazardousSubstances: string[];
+    manufacturingDate: string;
+  };
+  durabilityAndCare: {
+    expectedLifetime_cycles: number;
+    washInstructions: string;
+    repairability: {
+      repairDifficulty: string;
+      sparePartsAvailable: boolean;
+      repairGuidesURL: string;
     };
-    manufacturing: {
-      producer: {
-        name: string;
-        address: string;
-        contact: string;
-      };
-      productionSites: Array<{
-        country: string;
-        facilityId: string;
-        processes: string[];
-      }>;
-      manufacturingDate: string;
-    };
-    durabilityAndCare: {
-      expectedLifetime_cycles: number;
-      washInstructions: string;
-      repairability: {
-        repairDifficulty: string;
-        sparePartsAvailable: boolean;
-        repairGuidesURL: string;
-      };
-    };
-    endOfLife: {
-      recyclabilityPercentage: number;
-      disassemblyInstructionsURL: string;
-      takeBackPrograms: Array<{
-        programName: string;
-        url: string;
-      }>;
-    };
-    supplyChainTraceability: {
-      chain: Array<{
-        stage: string;
-        supplier: string;
-        country: string;
-        certificate?: string;
-      }>;
-    };
-    metadata: {
-      passportCreated: string;
-      passportLastUpdated: string;
-      dataOwner: string;
-    };
+  };
+  endOfLife: {
+    recyclabilityPercentage: number;
+    disassemblyInstructionsURL: string;
+    takeBackPrograms: Array<{
+      programName: string;
+      url: string;
+    }>;
+  };
+  supplyChainTraceability: {
+    chain: Array<{
+      stage: string;
+      supplier: string;
+      country: string;
+      certificate?: string;
+    }>;
+  };
+  metadata: {
+    passportCreated: string;
+    passportLastUpdated: string;
+    dataOwner: string;
   };
 }
 
 // Funkcja do konwersji Digital Product Passport na Product
 export function convertDPPtoProduct(dpp: DigitalProductPassport): any {
-  const { productPassport } = dpp;
-
   // Obliczanie eco score na podstawie różnych czynników
   let ecoScore = 100;
 
   // Impact śladu węglowego (maks -30 punktów)
-  if (productPassport.environmentalImpact.carbonFootprint_kgCO2e > 5) {
-    ecoScore -= Math.min(30, (productPassport.environmentalImpact.carbonFootprint_kgCO2e - 5) * 5);
+  if (dpp.environmentalImpact.carbonFootprint_kgCO2e > 5) {
+    ecoScore -= Math.min(30, (dpp.environmentalImpact.carbonFootprint_kgCO2e - 5) * 5);
   }
 
   // Recycled content (+10 punktów jeśli > 50%)
-  if (productPassport.environmentalImpact.recycledContentPercentage > 50) {
+  if (dpp.environmentalImpact.recycledContentPercentage > 50) {
     ecoScore += 10;
-  } else if (productPassport.environmentalImpact.recycledContentPercentage === 0) {
+  } else if (dpp.environmentalImpact.recycledContentPercentage === 0) {
     ecoScore -= 15;
   }
 
   // Substancje niebezpieczne (-20 punktów)
-  if (productPassport.environmentalImpact.hazardousSubstances.length > 0) {
+  if (dpp.environmentalImpact.hazardousSubstances.length > 0) {
     ecoScore -= 20;
   }
 
   // Recyklowalność
-  if (productPassport.endOfLife.recyclabilityPercentage < 50) {
+  if (dpp.endOfLife.recyclabilityPercentage < 50) {
     ecoScore -= 20;
   }
 
   // Naprawialność
-  if (productPassport.durabilityAndCare.repairability.repairDifficulty === 'high') {
+  if (dpp.durabilityAndCare.repairability.repairDifficulty === 'high') {
     ecoScore -= 10;
-  } else if (productPassport.durabilityAndCare.repairability.repairDifficulty === 'low') {
+  } else if (dpp.durabilityAndCare.repairability.repairDifficulty === 'low') {
     ecoScore += 5;
   }
 
   // Certyfikaty materiałów
-  const hasCertifications = productPassport.materialComposition.some(m => m.certifications.length > 0);
+  const hasCertifications = dpp.materialComposition.some(m => m.certifications.length > 0);
   if (hasCertifications) {
     ecoScore += 10;
   }
 
   ecoScore = Math.max(0, Math.min(100, ecoScore));
 
-  const materials = productPassport.materialComposition.map(m => ({
+  const materials = dpp.materialComposition.map(m => ({
     name: m.material,
     percentage: m.percentage,
     isNatural: ['Cotton', 'Wool', 'Silk', 'Linen', 'Hemp'].includes(m.material),
@@ -119,34 +115,34 @@ export function convertDPPtoProduct(dpp: DigitalProductPassport): any {
   }));
 
   const recyclability =
-    productPassport.endOfLife.recyclabilityPercentage >= 80 ? 'full' :
-    productPassport.endOfLife.recyclabilityPercentage >= 40 ? 'partial' : 'none';
+    dpp.endOfLife.recyclabilityPercentage >= 80 ? 'full' :
+    dpp.endOfLife.recyclabilityPercentage >= 40 ? 'partial' : 'none';
 
-  const repairable = productPassport.durabilityAndCare.repairability.repairDifficulty !== 'high';
+  const repairable = dpp.durabilityAndCare.repairability.repairDifficulty !== 'high';
 
   // Environmental impact score (1-10, lower is better)
   const environmentalImpact = Math.min(10, Math.max(1,
-    Math.round(productPassport.environmentalImpact.carbonFootprint_kgCO2e / 2)
+    Math.round(dpp.environmentalImpact.carbonFootprint_kgCO2e / 2)
   ));
 
   return {
-    passport: productPassport,
+    passport: dpp,
     product: {
-      id: productPassport.product.productId,
-      name: productPassport.product.name,
-      brand: productPassport.product.brand,
-      category: mapCategory(productPassport.product.category),
-      imageUrl: '/api/placeholder/400/300', // Placeholder
+      id: dpp.product.productId,
+      name: dpp.product.name,
+      brand: dpp.product.brand,
+      category: mapCategory(dpp.product.category),
+      imageUrl: '', // Brak zdjęcia - użytkownik może dodać własne
       materials,
       ecoScore,
       ecoRating: getEcoRating(ecoScore),
-      durability: productPassport.durabilityAndCare.expectedLifetime_cycles,
+      durability: dpp.durabilityAndCare.expectedLifetime_cycles,
       environmentalImpact,
       recyclability,
       repairable,
       secondHand: false,
-      careInstructions: [productPassport.durabilityAndCare.washInstructions],
-      facts: generateFacts(productPassport),
+      careInstructions: [dpp.durabilityAndCare.washInstructions],
+      facts: generateFacts(dpp),
       addedAt: new Date()
     }
   };

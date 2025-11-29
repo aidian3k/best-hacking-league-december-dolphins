@@ -44,6 +44,21 @@ export function ProductDetails({
 }: ProductDetailsProps) {
   const [showAllFacts, setShowAllFacts] = useState(false);
   const [showSupplyChain, setShowSupplyChain] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setIsUploading(true);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUploadedImage(reader.result as string);
+        setIsUploading(false);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const comparison = product.ecoScore > wardrobeAvgScore 
     ? 'better' 
@@ -92,12 +107,68 @@ export function ProductDetails({
 
       {/* Product Image & Score */}
       <div className="relative">
-        <img
-          src={product.imageUrl}
-          alt={product.name}
-          className="w-full aspect-[4/3] object-cover"
-        />
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background to-transparent h-24" />
+        {(uploadedImage || (product.imageUrl && !product.imageUrl.includes('placeholder'))) ? (
+          <>
+            <img
+              src={uploadedImage || product.imageUrl}
+              alt={product.name}
+              className="w-full aspect-[4/3] object-cover"
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background to-transparent h-24" />
+            {uploadedImage && (
+              <button
+                onClick={() => setUploadedImage(null)}
+                className="absolute top-4 left-4 bg-background/90 backdrop-blur-sm text-foreground px-3 py-1.5 rounded-full text-xs font-medium shadow-lg hover:bg-background transition-colors flex items-center gap-1.5"
+              >
+                <XCircle className="w-3.5 h-3.5" />
+                Usuń zdjęcie
+              </button>
+            )}
+          </>
+        ) : (
+          <div className="w-full aspect-[4/3] bg-gradient-to-br from-muted via-muted/50 to-background border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 sm:gap-3 max-h-[300px] sm:max-h-[400px]">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-accent/20 flex items-center justify-center">
+              {isUploading ? (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                >
+                  <Leaf className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-accent" />
+                </motion.div>
+              ) : (
+                <Leaf className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-accent" />
+              )}
+            </div>
+            <div className="text-center px-6 sm:px-8">
+              <p className="font-medium text-foreground mb-1 text-xs sm:text-sm md:text-base">Brak zdjęcia produktu</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Dodaj własne zdjęcie z galerii lub aparatu</p>
+            </div>
+            <label htmlFor="image-upload" className="cursor-pointer">
+              <input
+                id="image-upload"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleImageUpload}
+                className="hidden"
+                disabled={isUploading}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-xs sm:text-sm pointer-events-none"
+                disabled={isUploading}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 sm:w-4 sm:h-4">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                {isUploading ? 'Wczytywanie...' : 'Dodaj zdjęcie'}
+              </Button>
+            </label>
+          </div>
+        )}
         <div className="absolute bottom-4 right-4">
           <EcoScore score={product.ecoScore} size="lg" showLabel />
         </div>
@@ -310,41 +381,41 @@ export function ProductDetails({
                     <Zap className="w-5 h-5 text-orange-500" />
                     <span className="text-sm">Ślad węglowy</span>
                   </div>
-                  <span className="font-semibold">{passport.productPassport.environmentalImpact.carbonFootprint_kgCO2e.toFixed(1)} kg CO₂e</span>
+                  <span className="font-semibold">{passport.environmentalImpact.carbonFootprint_kgCO2e.toFixed(1)} kg CO₂e</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                   <div className="flex items-center gap-2">
                     <Droplets className="w-5 h-5 text-blue-500" />
                     <span className="text-sm">Zużycie wody</span>
                   </div>
-                  <span className="font-semibold">{passport.productPassport.environmentalImpact.waterUsage_liters} L</span>
+                  <span className="font-semibold">{passport.environmentalImpact.waterUsage_liters} L</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                   <div className="flex items-center gap-2">
                     <ThermometerSun className="w-5 h-5 text-yellow-500" />
                     <span className="text-sm">Energia</span>
                   </div>
-                  <span className="font-semibold">{passport.productPassport.environmentalImpact.energy_kWh.toFixed(1)} kWh</span>
+                  <span className="font-semibold">{passport.environmentalImpact.energy_kWh.toFixed(1)} kWh</span>
                 </div>
-                {passport.productPassport.environmentalImpact.recycledContentPercentage > 0 && (
+                {passport.environmentalImpact.recycledContentPercentage > 0 && (
                   <div className="flex items-center justify-between p-3 bg-eco-excellent/10 rounded-lg border border-eco-excellent/30">
                     <div className="flex items-center gap-2">
                       <Recycle className="w-5 h-5 text-eco-excellent" />
                       <span className="text-sm">Materiały z recyklingu</span>
                     </div>
                     <span className="font-semibold text-eco-excellent">
-                      {passport.productPassport.environmentalImpact.recycledContentPercentage}%
+                      {passport.environmentalImpact.recycledContentPercentage}%
                     </span>
                   </div>
                 )}
-                {passport.productPassport.environmentalImpact.hazardousSubstances.length > 0 && (
+                {passport.environmentalImpact.hazardousSubstances.length > 0 && (
                   <div className="p-3 bg-eco-poor/10 rounded-lg border border-eco-poor/30">
                     <div className="flex items-center gap-2 mb-2">
                       <AlertTriangle className="w-5 h-5 text-eco-poor" />
                       <span className="text-sm font-semibold text-eco-poor">Substancje niebezpieczne</span>
                     </div>
                     <ul className="text-xs text-eco-poor/80 ml-7">
-                      {passport.productPassport.environmentalImpact.hazardousSubstances.map((substance, i) => (
+                      {passport.environmentalImpact.hazardousSubstances.map((substance, i) => (
                         <li key={i}>• {substance}</li>
                       ))}
                     </ul>
@@ -360,15 +431,15 @@ export function ProductDetails({
                 <div className="flex items-start gap-3">
                   <Factory className="w-5 h-5 text-primary mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium">{passport.productPassport.manufacturing.producer.name}</p>
-                    <p className="text-xs text-muted-foreground">{passport.productPassport.manufacturing.producer.address}</p>
+                    <p className="text-sm font-medium">{passport.manufacturing.producer.name}</p>
+                    <p className="text-xs text-muted-foreground">{passport.manufacturing.producer.address}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <MapPin className="w-5 h-5 text-primary mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-medium mb-1">Miejsca produkcji</p>
-                    {passport.productPassport.manufacturing.productionSites.map((site, i) => (
+                    {passport.manufacturing.productionSites.map((site, i) => (
                       <div key={i} className="text-xs text-muted-foreground mb-1">
                         • {site.country} - {site.processes.join(', ')}
                       </div>
@@ -379,11 +450,11 @@ export function ProductDetails({
             </div>
 
             {/* Certifications */}
-            {passport.productPassport.materialComposition.some(m => m.certifications.length > 0) && (
+            {passport.materialComposition.some(m => m.certifications.length > 0) && (
               <div className="mt-4 bg-card rounded-2xl p-4 shadow-eco border border-border">
                 <h2 className="font-display font-semibold mb-3">Certyfikaty</h2>
                 <div className="flex flex-wrap gap-2">
-                  {passport.productPassport.materialComposition
+                  {passport.materialComposition
                     .flatMap(m => m.certifications)
                     .filter((cert, i, arr) => arr.indexOf(cert) === i)
                     .map((cert, i) => (
@@ -414,11 +485,14 @@ export function ProductDetails({
                 animate={{ height: showSupplyChain ? 'auto' : '0px' }}
                 className="overflow-hidden"
               >
-                <div className="mt-3 space-y-3">
-                  {passport.productPassport.supplyChainTraceability.chain.map((item, i) => (
-                    <div key={i} className="relative pl-4 pb-3 border-l-2 border-accent last:border-transparent">
-                      <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-accent border-2 border-background" />
-                      <p className="text-sm font-medium">{item.stage}</p>
+                <div className="mt-3 space-y-0">
+                  {passport.supplyChainTraceability.chain.map((item, i) => (
+                    <div key={i} className="relative pl-6 pb-4 last:pb-0">
+                      {i < passport.supplyChainTraceability.chain.length - 1 && (
+                        <div className="absolute left-[7px] top-2 bottom-0 w-0.5 bg-accent/30" />
+                      )}
+                      <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-accent border-2 border-background shadow-sm" />
+                      <p className="text-sm font-medium mb-0.5">{item.stage}</p>
                       <p className="text-xs text-muted-foreground">{item.supplier} • {item.country}</p>
                       {item.certificate && (
                         <p className="text-xs text-eco-excellent mt-1">✓ {item.certificate}</p>
@@ -430,10 +504,10 @@ export function ProductDetails({
             </div>
 
             {/* End of Life */}
-            {passport.productPassport.endOfLife.takeBackPrograms.length > 0 && (
+            {passport.endOfLife.takeBackPrograms.length > 0 && (
               <div className="mt-4 bg-card rounded-2xl p-4 shadow-eco border border-border">
                 <h2 className="font-display font-semibold mb-3">Program zwrotu</h2>
-                {passport.productPassport.endOfLife.takeBackPrograms.map((program, i) => (
+                {passport.endOfLife.takeBackPrograms.map((program, i) => (
                   <div key={i} className="flex items-center justify-between p-3 bg-eco-excellent/10 rounded-lg">
                     <div>
                       <p className="text-sm font-medium">{program.programName}</p>
