@@ -14,10 +14,12 @@ export function ScannerView({ onScan, onClose, isScanning }: ScannerViewProps) {
   const [error, setError] = useState<string | null>(null);
   const [cameraStarted, setCameraStarted] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const hasScannedRef = useRef(false);
   const qrCodeRegionId = "qr-reader";
 
   useEffect(() => {
     if (!isScanning) {
+      hasScannedRef.current = false;
       startCamera();
     }
     return () => {
@@ -41,7 +43,8 @@ export function ScannerView({ onScan, onClose, isScanning }: ScannerViewProps) {
         config,
         (decodedText) => {
           // Automatycznie skanuj gdy wykryto kod QR
-          if (decodedText && !isScanning) {
+          if (decodedText && !isScanning && !hasScannedRef.current) {
+            hasScannedRef.current = true;
             stopCamera();
             onScan(decodedText);
           }
@@ -91,8 +94,35 @@ export function ScannerView({ onScan, onClose, isScanning }: ScannerViewProps) {
   };
 
   const handleManualScan = () => {
-    // Mock URL do testowania
-    onScan("https://example.com/api/product-passport/123456789");
+    // Mock JSON payload do testowania
+    hasScannedRef.current = true;
+    const mockPayload = {
+      "productId": "123456789",
+      "gtin": "5901234123457",
+      "productName": "Eco Cotton T-Shirt",
+      "brand": "EcoFashion",
+      "category": "Clothing",
+      "description": "Sustainable cotton t-shirt made from 100% organic cotton",
+      "materials": [
+        {
+          "name": "Organic Cotton",
+          "percentage": 100,
+          "certifications": ["GOTS", "Oeko-Tex Standard 100"]
+        }
+      ],
+      "sustainability": {
+        "carbonFootprint": 2.5,
+        "waterUsage": 50,
+        "recyclability": 90,
+        "certifications": ["GOTS", "Fair Trade"]
+      },
+      "manufacturingInfo": {
+        "country": "Portugal",
+        "facility": "Green Factory Ltd.",
+        "dateManufactured": "2024-01-15"
+      }
+    };
+    onScan(JSON.stringify(mockPayload));
   };
 
   return (

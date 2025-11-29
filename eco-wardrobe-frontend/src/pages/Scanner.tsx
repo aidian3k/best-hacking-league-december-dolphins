@@ -5,15 +5,12 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { ScannerView } from '@/components/scanner/ScannerView';
 import { ProductDetails } from '@/components/scanner/ProductDetails';
 import { calculateWardrobeStats, mockProducts } from '@/data/mockData';
-import { mockPassports } from '@/data/mockPassports';
 import { Product } from '@/types/product';
 import { DigitalProductPassport, convertDPPtoProduct } from '@/types/digitalProductPassport';
 import { useToast } from '@/hooks/use-toast';
 
 type ScannerState = 'idle' | 'scanning' | 'result' | 'error';
 
-// Używamy mock paszportów z osobnego pliku
-const mockDPP: DigitalProductPassport = mockPassports['123456789'];
 
 export default function Scanner() {
   const [state, setState] = useState<ScannerState>('idle');
@@ -26,21 +23,30 @@ export default function Scanner() {
   const wardrobeStats = calculateWardrobeStats(mockProducts);
 
   const handleScan = async (url: string) => {
+    console.log('Scanned URL:', url);
     setState('scanning');
     setShowCamera(false);
 
     try {
-      // Próba pobrania danych z URL
+      // Wykonanie zapytania GET do URL z QR kodu
+      console.log('Fetching data from:', url);
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Received data:', data);
+
+      // Wyciągnięcie DPP z pola 'record'
       let dppData: DigitalProductPassport;
 
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Failed to fetch');
-        dppData = await response.json();
-      } catch (error) {
-        // Jeśli nie udało się pobrać, użyj mock data
-        console.log('Using mock data for testing');
-        dppData = mockDPP;
+      if (data.record && data.record.productPassport) {
+        dppData = data.record.productPassport;
+        console.log('Extracted DPP from record:', dppData);
+      } else {
+        throw new Error('Invalid data structure - missing record.productPassport');
       }
 
       // Konwersja DPP na Product
@@ -56,7 +62,7 @@ export default function Scanner() {
 
       toast({
         title: 'Błąd skanowania',
-        description: 'Nie udało się przetworzyć danych produktu',
+        description: error instanceof Error ? error.message : 'Nie udało się pobrać danych produktu',
         variant: 'destructive',
       });
 
