@@ -1,6 +1,7 @@
 import { Product, categoryLabels, ecoRatingLabels } from '@/types/product';
 import { DigitalProductPassport } from '@/types/digitalProductPassport';
 import { EcoScore, EcoScoreBar } from '@/components/ui/EcoScore';
+import { ProductImagePlaceholder } from '@/components/ui/ProductImagePlaceholder';
 import { motion } from 'framer-motion';
 import { 
   Recycle, 
@@ -32,6 +33,8 @@ interface ProductDetailsProps {
   onAddToWardrobe: () => void;
   onScanAgain: () => void;
   isInWardrobe?: boolean;
+  isPublic?: boolean;
+  influencerName?: string;
 }
 
 export function ProductDetails({ 
@@ -40,7 +43,9 @@ export function ProductDetails({
   wardrobeAvgScore = 65,
   onAddToWardrobe, 
   onScanAgain,
-  isInWardrobe = false
+  isInWardrobe = false,
+  isPublic = false,
+  influencerName
 }: ProductDetailsProps) {
   const [showAllFacts, setShowAllFacts] = useState(false);
   const [showSupplyChain, setShowSupplyChain] = useState(false);
@@ -229,21 +234,30 @@ export function ProductDetails({
               <>
                 <Leaf className="w-5 h-5 text-eco-excellent" />
                 <span className="text-sm font-medium">
-                  Lepszy od średniej Twojej szafy (+{product.ecoScore - wardrobeAvgScore} pkt)
+                  {isPublic 
+                    ? `Lepszy od średniej szafy ${influencerName} (+${product.ecoScore - wardrobeAvgScore} pkt)`
+                    : `Lepszy od średniej Twojej szafy (+${product.ecoScore - wardrobeAvgScore} pkt)`
+                  }
                 </span>
               </>
             ) : comparison === 'worse' ? (
               <>
                 <AlertTriangle className="w-5 h-5 text-eco-poor" />
                 <span className="text-sm font-medium">
-                  Gorszy od typowych produktów w Twojej szafie ({wardrobeAvgScore - product.ecoScore} pkt mniej)
+                  {isPublic
+                    ? `Gorszy od typowych produktów w szafie ${influencerName} (${wardrobeAvgScore - product.ecoScore} pkt mniej)`
+                    : `Gorszy od typowych produktów w Twojej szafie (${wardrobeAvgScore - product.ecoScore} pkt mniej)`
+                  }
                 </span>
               </>
             ) : (
               <>
                 <Info className="w-5 h-5 text-muted-foreground" />
                 <span className="text-sm font-medium">
-                  Na poziomie średniej Twojej szafy
+                  {isPublic
+                    ? `Na poziomie średniej szafy ${influencerName}`
+                    : 'Na poziomie średniej Twojej szafy'
+                  }
                 </span>
               </>
             )}
@@ -525,7 +539,15 @@ export function ProductDetails({
       {/* Action Buttons */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border safe-bottom">
         <div className="flex gap-3 max-w-lg mx-auto">
-          {isInWardrobe ? (
+          {isPublic ? (
+            <Button
+              variant="outline"
+              onClick={onScanAgain}
+              className="flex-1"
+            >
+              Wróć do szafy
+            </Button>
+          ) : isInWardrobe ? (
             <>
               <Button
                 variant="outline"

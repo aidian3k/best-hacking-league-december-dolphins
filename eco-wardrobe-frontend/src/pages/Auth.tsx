@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Leaf, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLoginMutation, useRegisterMutation } from '@/api/auth';
+import { useUser } from '@/contexts/UserContext';
 
 type AuthMode = 'login' | 'register';
 
@@ -14,29 +16,52 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setUser } = useUser();
+
+  const loginMutation = useLoginMutation();
+  const registerMutation = useRegisterMutation();
+
+  const isLoading = loginMutation.isPending || registerMutation.isPending;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    // Mock authentication
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      let user;
+      
+      if (mode === 'login') {
+        user = await loginMutation.mutateAsync({ email, password });
+      } else {
+        user = await registerMutation.mutateAsync({
+          email,
+          password,
+          name,
+        });
+      }
 
-    toast({
-      title: mode === 'login' ? 'Zalogowano!' : 'Konto utworzone!',
-      description: 'Witaj w EkoSzafie!',
-    });
+      setUser(user);
+      
+      toast({
+        title: mode === 'login' ? 'Zalogowano!' : 'Konto utworzone!',
+        description: `Witaj ${user.name} w EkoSzafie!`,
+      });
 
-    setIsLoading(false);
-    navigate('/wardrobe');
+      navigate('/wardrobe');
+    } catch (error) {
+      toast({
+        title: 'Błąd',
+        description: mode === 'login' 
+          ? 'Nie udało się zalogować. Sprawdź dane.' 
+          : 'Nie udało się utworzyć konta. Spróbuj ponownie.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Hero Section */}
       <div className="gradient-eco pt-12 pb-16 px-4 text-center relative overflow-hidden">
         <motion.div
           initial={{ scale: 0 }}
@@ -63,12 +88,10 @@ export default function Auth() {
           Twoja ekologiczna garderoba
         </motion.p>
 
-        {/* Decorative elements */}
         <div className="absolute top-10 left-10 w-20 h-20 bg-primary-foreground/10 rounded-full blur-2xl" />
         <div className="absolute bottom-10 right-10 w-32 h-32 bg-accent/20 rounded-full blur-3xl" />
       </div>
 
-      {/* Auth Form */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -76,7 +99,6 @@ export default function Auth() {
         className="flex-1 -mt-8 px-4"
       >
         <div className="bg-card rounded-2xl shadow-eco-lg border border-border p-6 max-w-md mx-auto">
-          {/* Mode Toggle */}
           <div className="flex bg-muted rounded-xl p-1 mb-6">
             <button
               onClick={() => setMode('login')}
@@ -110,13 +132,13 @@ export default function Auth() {
                   exit={{ opacity: 0, height: 0 }}
                   className="space-y-2"
                 >
-                  <Label htmlFor="name">Imię</Label>
+                  <Label htmlFor="name">Imię i nazwisko</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       id="name"
                       type="text"
-                      placeholder="Jan"
+                      placeholder="Jan Kowalski"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="pl-10"
@@ -181,11 +203,17 @@ export default function Auth() {
             </Button>
           </form>
 
-          {/* Quick access for demo */}
           <div className="mt-6 pt-6 border-t border-border">
             <Button
               variant="ghost"
-              onClick={() => navigate('/wardrobe')}
+              onClick={() => {
+                setUser({
+                  id: '550e8400-e29b-41d4-a716-446655440000',
+                  email: 'demo@example.com',
+                  name: 'Demo Użytkownik',
+                });
+                navigate('/wardrobe');
+              }}
               className="w-full text-muted-foreground"
             >
               Wejdź bez logowania (demo)
@@ -193,7 +221,6 @@ export default function Auth() {
           </div>
         </div>
 
-        {/* Features */}
         <div className="mt-8 grid grid-cols-3 gap-4 max-w-md mx-auto pb-8">
           {[
             { icon: '📱', label: 'Skanuj' },
