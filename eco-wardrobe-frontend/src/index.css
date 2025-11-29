@@ -1,0 +1,259 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* EkoSzafa Design System - Fresh & Organic */
+    --background: 45 30% 97%;
+    --foreground: 150 30% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 150 30% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 150 30% 15%;
+
+    /* Primary - Forest Green */
+    --primary: 155 45% 25%;
+    --primary-foreground: 45 30% 97%;
+
+    /* Secondary - Warm Earth */
+    --secondary: 35 35% 90%;
+    --secondary-foreground: 35 40% 25%;
+
+    /* Muted - Soft sage */
+    --muted: 150 15% 92%;
+    --muted-foreground: 150 10% 45%;
+
+    /* Accent - Teal highlight */
+    --accent: 170 55% 40%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Eco Score Colors */
+    --eco-excellent: 145 60% 40%;
+    --eco-good: 85 50% 45%;
+    --eco-medium: 45 70% 50%;
+    --eco-poor: 15 70% 50%;
+    --eco-bad: 0 65% 50%;
+
+    /* Semantic colors */
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 150 15% 85%;
+    --input: 150 15% 85%;
+    --ring: 155 45% 25%;
+
+    --radius: 1rem;
+
+    /* Gradients */
+    --gradient-eco: linear-gradient(135deg, hsl(155 45% 25%), hsl(170 55% 40%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(45 30% 98%));
+    --gradient-score: linear-gradient(90deg, hsl(0 65% 50%), hsl(45 70% 50%), hsl(145 60% 40%));
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px -2px hsl(150 30% 15% / 0.08);
+    --shadow-md: 0 8px 24px -8px hsl(150 30% 15% / 0.12);
+    --shadow-lg: 0 16px 48px -16px hsl(150 30% 15% / 0.16);
+    --shadow-glow: 0 0 32px hsl(155 45% 25% / 0.2);
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 150 30% 15%;
+    --sidebar-primary: 155 45% 25%;
+    --sidebar-primary-foreground: 45 30% 97%;
+    --sidebar-accent: 150 15% 92%;
+    --sidebar-accent-foreground: 150 30% 15%;
+    --sidebar-border: 150 15% 85%;
+    --sidebar-ring: 155 45% 25%;
+  }
+
+  .dark {
+    --background: 150 25% 8%;
+    --foreground: 45 20% 95%;
+
+    --card: 150 20% 12%;
+    --card-foreground: 45 20% 95%;
+
+    --popover: 150 20% 12%;
+    --popover-foreground: 45 20% 95%;
+
+    --primary: 155 50% 45%;
+    --primary-foreground: 150 25% 8%;
+
+    --secondary: 150 15% 18%;
+    --secondary-foreground: 45 20% 90%;
+
+    --muted: 150 15% 18%;
+    --muted-foreground: 150 10% 55%;
+
+    --accent: 170 55% 50%;
+    --accent-foreground: 150 25% 8%;
+
+    --destructive: 0 60% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 150 15% 20%;
+    --input: 150 15% 20%;
+    --ring: 155 50% 45%;
+
+    --sidebar-background: 150 20% 10%;
+    --sidebar-foreground: 45 20% 95%;
+    --sidebar-primary: 155 50% 45%;
+    --sidebar-primary-foreground: 150 25% 8%;
+    --sidebar-accent: 150 15% 15%;
+    --sidebar-accent-foreground: 45 20% 95%;
+    --sidebar-border: 150 15% 18%;
+    --sidebar-ring: 155 50% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Outfit', sans-serif;
+  }
+
+  .font-body {
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .gradient-eco {
+    background: var(--gradient-eco);
+  }
+
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+
+  .shadow-eco {
+    box-shadow: var(--shadow-md);
+  }
+
+  .shadow-eco-lg {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .text-eco-excellent {
+    color: hsl(var(--eco-excellent));
+  }
+
+  .text-eco-good {
+    color: hsl(var(--eco-good));
+  }
+
+  .text-eco-medium {
+    color: hsl(var(--eco-medium));
+  }
+
+  .text-eco-poor {
+    color: hsl(var(--eco-poor));
+  }
+
+  .text-eco-bad {
+    color: hsl(var(--eco-bad));
+  }
+
+  .bg-eco-excellent {
+    background-color: hsl(var(--eco-excellent));
+  }
+
+  .bg-eco-good {
+    background-color: hsl(var(--eco-good));
+  }
+
+  .bg-eco-medium {
+    background-color: hsl(var(--eco-medium));
+  }
+
+  .bg-eco-poor {
+    background-color: hsl(var(--eco-poor));
+  }
+
+  .bg-eco-bad {
+    background-color: hsl(var(--eco-bad));
+  }
+
+  /* Mobile app feel */
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 1rem);
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-eco {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(155 45% 25% / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 12px hsl(155 45% 25% / 0);
+  }
+}
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(400%);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-pulse-eco {
+  animation: pulse-eco 2s infinite;
+}
+
+.animate-scan-line {
+  animation: scan-line 2s linear infinite;
+}
