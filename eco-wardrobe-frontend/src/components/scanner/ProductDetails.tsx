@@ -1,4 +1,5 @@
 import { Product, categoryLabels, ecoRatingLabels } from '@/types/product';
+import { DigitalProductPassport } from '@/types/digitalProductPassport';
 import { EcoScore, EcoScoreBar } from '@/components/ui/EcoScore';
 import { motion } from 'framer-motion';
 import { 
@@ -14,7 +15,11 @@ import {
   ChevronUp,
   CheckCircle2,
   XCircle,
-  Trash2
+  Trash2,
+  Factory,
+  MapPin,
+  Award,
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -22,6 +27,7 @@ import { cn } from '@/lib/utils';
 
 interface ProductDetailsProps {
   product: Product;
+  passport?: DigitalProductPassport;
   wardrobeAvgScore?: number;
   onAddToWardrobe: () => void;
   onScanAgain: () => void;
@@ -30,13 +36,15 @@ interface ProductDetailsProps {
 
 export function ProductDetails({ 
   product, 
-  wardrobeAvgScore = 65, 
+  passport,
+  wardrobeAvgScore = 65,
   onAddToWardrobe, 
   onScanAgain,
   isInWardrobe = false
 }: ProductDetailsProps) {
   const [showAllFacts, setShowAllFacts] = useState(false);
-  
+  const [showSupplyChain, setShowSupplyChain] = useState(false);
+
   const comparison = product.ecoScore > wardrobeAvgScore 
     ? 'better' 
     : product.ecoScore < wardrobeAvgScore 
@@ -290,6 +298,154 @@ export function ProductDetails({
             </ul>
           </motion.div>
         </div>
+
+        {/* Digital Product Passport - Environmental Impact */}
+        {passport && (
+          <>
+            <div className="mt-4 bg-card rounded-2xl p-4 shadow-eco border border-border">
+              <h2 className="font-display font-semibold mb-3">Wpływ środowiskowy</h2>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-orange-500" />
+                    <span className="text-sm">Ślad węglowy</span>
+                  </div>
+                  <span className="font-semibold">{passport.productPassport.environmentalImpact.carbonFootprint_kgCO2e.toFixed(1)} kg CO₂e</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Droplets className="w-5 h-5 text-blue-500" />
+                    <span className="text-sm">Zużycie wody</span>
+                  </div>
+                  <span className="font-semibold">{passport.productPassport.environmentalImpact.waterUsage_liters} L</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <ThermometerSun className="w-5 h-5 text-yellow-500" />
+                    <span className="text-sm">Energia</span>
+                  </div>
+                  <span className="font-semibold">{passport.productPassport.environmentalImpact.energy_kWh.toFixed(1)} kWh</span>
+                </div>
+                {passport.productPassport.environmentalImpact.recycledContentPercentage > 0 && (
+                  <div className="flex items-center justify-between p-3 bg-eco-excellent/10 rounded-lg border border-eco-excellent/30">
+                    <div className="flex items-center gap-2">
+                      <Recycle className="w-5 h-5 text-eco-excellent" />
+                      <span className="text-sm">Materiały z recyklingu</span>
+                    </div>
+                    <span className="font-semibold text-eco-excellent">
+                      {passport.productPassport.environmentalImpact.recycledContentPercentage}%
+                    </span>
+                  </div>
+                )}
+                {passport.productPassport.environmentalImpact.hazardousSubstances.length > 0 && (
+                  <div className="p-3 bg-eco-poor/10 rounded-lg border border-eco-poor/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertTriangle className="w-5 h-5 text-eco-poor" />
+                      <span className="text-sm font-semibold text-eco-poor">Substancje niebezpieczne</span>
+                    </div>
+                    <ul className="text-xs text-eco-poor/80 ml-7">
+                      {passport.productPassport.environmentalImpact.hazardousSubstances.map((substance, i) => (
+                        <li key={i}>• {substance}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Manufacturing Info */}
+            <div className="mt-4 bg-card rounded-2xl p-4 shadow-eco border border-border">
+              <h2 className="font-display font-semibold mb-3">Produkcja</h2>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <Factory className="w-5 h-5 text-primary mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{passport.productPassport.manufacturing.producer.name}</p>
+                    <p className="text-xs text-muted-foreground">{passport.productPassport.manufacturing.producer.address}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-primary mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium mb-1">Miejsca produkcji</p>
+                    {passport.productPassport.manufacturing.productionSites.map((site, i) => (
+                      <div key={i} className="text-xs text-muted-foreground mb-1">
+                        • {site.country} - {site.processes.join(', ')}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Certifications */}
+            {passport.productPassport.materialComposition.some(m => m.certifications.length > 0) && (
+              <div className="mt-4 bg-card rounded-2xl p-4 shadow-eco border border-border">
+                <h2 className="font-display font-semibold mb-3">Certyfikaty</h2>
+                <div className="flex flex-wrap gap-2">
+                  {passport.productPassport.materialComposition
+                    .flatMap(m => m.certifications)
+                    .filter((cert, i, arr) => arr.indexOf(cert) === i)
+                    .map((cert, i) => (
+                      <span key={i} className="bg-eco-excellent/10 border border-eco-excellent/30 text-eco-excellent px-3 py-1.5 rounded-full text-sm flex items-center gap-1">
+                        <Award className="w-3 h-3" />
+                        {cert}
+                      </span>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {/* Supply Chain */}
+            <div className="mt-4 bg-card rounded-2xl p-4 shadow-eco border border-border">
+              <button
+                onClick={() => setShowSupplyChain(!showSupplyChain)}
+                className="w-full flex items-center justify-between"
+              >
+                <h2 className="font-display font-semibold">Łańcuch dostaw</h2>
+                {showSupplyChain ? (
+                  <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                )}
+              </button>
+              <motion.div
+                initial={false}
+                animate={{ height: showSupplyChain ? 'auto' : '0px' }}
+                className="overflow-hidden"
+              >
+                <div className="mt-3 space-y-3">
+                  {passport.productPassport.supplyChainTraceability.chain.map((item, i) => (
+                    <div key={i} className="relative pl-4 pb-3 border-l-2 border-accent last:border-transparent">
+                      <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-accent border-2 border-background" />
+                      <p className="text-sm font-medium">{item.stage}</p>
+                      <p className="text-xs text-muted-foreground">{item.supplier} • {item.country}</p>
+                      {item.certificate && (
+                        <p className="text-xs text-eco-excellent mt-1">✓ {item.certificate}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+
+            {/* End of Life */}
+            {passport.productPassport.endOfLife.takeBackPrograms.length > 0 && (
+              <div className="mt-4 bg-card rounded-2xl p-4 shadow-eco border border-border">
+                <h2 className="font-display font-semibold mb-3">Program zwrotu</h2>
+                {passport.productPassport.endOfLife.takeBackPrograms.map((program, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-eco-excellent/10 rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium">{program.programName}</p>
+                      <p className="text-xs text-muted-foreground">{program.url}</p>
+                    </div>
+                    <Recycle className="w-5 h-5 text-eco-excellent" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Action Buttons */}

@@ -1,15 +1,100 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, X, Zap } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { X, Zap, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Html5Qrcode } from 'html5-qrcode';
 
 interface ScannerViewProps {
-  onScan: () => void;
+  onScan: (url: string) => void;
   onClose: () => void;
   isScanning: boolean;
 }
 
 export function ScannerView({ onScan, onClose, isScanning }: ScannerViewProps) {
+  const [error, setError] = useState<string | null>(null);
+  const [cameraStarted, setCameraStarted] = useState(false);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const qrCodeRegionId = "qr-reader";
+
+  useEffect(() => {
+    if (!isScanning) {
+      startCamera();
+    }
+    return () => {
+      stopCamera();
+    };
+  }, [isScanning]);
+
+  const startCamera = async () => {
+    try {
+      const html5QrCode = new Html5Qrcode(qrCodeRegionId);
+      scannerRef.current = html5QrCode;
+
+      const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0
+      };
+
+      await html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        (decodedText) => {
+          // Automatycznie skanuj gdy wykryto kod QR
+          if (decodedText && !isScanning) {
+            stopCamera();
+            onScan(decodedText);
+          }
+        },
+        (_errorMessage) => {
+          // Ignorujemy błędy skanowania - czekamy na poprawny kod
+        }
+      );
+
+      setCameraStarted(true);
+      setError(null);
+    } catch (err: any) {
+      console.error("Error starting camera:", err);
+
+      let errorMessage = "Nie można uruchomić kamery.";
+
+      // Sprawdź czy to problem z uprawnieniami
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        errorMessage = "Brak dostępu do kamery. Zezwól na użycie kamery w ustawieniach przeglądarki.";
+      }
+      // Sprawdź czy to problem z HTTPS
+      else if (err.name === 'NotSupportedError' || err.message?.includes('secure')) {
+        errorMessage = "Kamera wymaga połączenia HTTPS. Użyj przycisku testowego poniżej.";
+      }
+      // Sprawdź czy kamera jest zajęta
+      else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        errorMessage = "Kamera jest używana przez inną aplikację.";
+      }
+      // Brak kamery
+      else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        errorMessage = "Nie znaleziono kamery. Użyj przycisku testowego poniżej.";
+      }
+
+      setError(errorMessage);
+    }
+  };
+
+  const stopCamera = async () => {
+    if (scannerRef.current && cameraStarted) {
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current.clear();
+      } catch (err) {
+        console.error("Error stopping camera:", err);
+      }
+    }
+  };
+
+  const handleManualScan = () => {
+    // Mock URL do testowania
+    onScan("https://example.com/api/product-passport/123456789");
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -22,69 +107,74 @@ export function ScannerView({ onScan, onClose, isScanning }: ScannerViewProps) {
         <button onClick={onClose} className="text-primary-foreground">
           <X className="w-6 h-6" />
         </button>
-        <h2 className="text-primary-foreground font-display font-semibold">Skaner</h2>
+        <h2 className="text-primary-foreground font-display font-semibold">Skaner QR</h2>
         <div className="w-6" />
       </div>
 
-      {/* Camera View Mock */}
+      {/* Camera View */}
       <div className="flex-1 relative flex items-center justify-center p-8">
-        <div className="relative w-full max-w-xs aspect-square">
-          {/* Scanner Frame */}
-          <div className="absolute inset-0 border-2 border-primary-foreground/50 rounded-2xl">
-            {/* Corner accents */}
-            <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-accent rounded-tl-lg" />
-            <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-accent rounded-tr-lg" />
-            <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-accent rounded-bl-lg" />
-            <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-accent rounded-br-lg" />
-          </div>
+        <div className="relative w-full max-w-xs">
+          {/* QR Reader Container */}
+          <div id={qrCodeRegionId} className="w-full" />
 
-          {/* Scanning line animation */}
-          {isScanning && (
-            <div className="absolute inset-4 overflow-hidden rounded-lg">
-              <motion.div
-                className="h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent"
-                animate={{ y: [0, 280, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-              />
+          {error && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-foreground/95 rounded-lg p-6">
+              <AlertCircle className="w-16 h-16 text-destructive mb-4" />
+              <p className="text-primary-foreground text-sm text-center mb-4 max-w-xs">
+                {error}
+              </p>
+              <Button
+                onClick={handleManualScan}
+                disabled={isScanning}
+                size="lg"
+                className="w-full gradient-eco border-0"
+              >
+                Użyj testowego produktu
+              </Button>
             </div>
           )}
 
-          {/* Mock camera preview */}
-          <div className="absolute inset-4 bg-foreground/80 rounded-lg flex items-center justify-center">
-            {isScanning ? (
+          {isScanning && (
+            <div className="absolute inset-0 flex items-center justify-center bg-foreground/90 rounded-lg">
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
               >
                 <Zap className="w-12 h-12 text-accent" />
               </motion.div>
-            ) : (
-              <Camera className="w-12 h-12 text-primary-foreground/50" />
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Instructions */}
       <div className="text-center px-4 pb-4">
         <p className="text-primary-foreground/80 text-sm mb-4">
-          {isScanning 
-            ? 'Analizowanie produktu...' 
-            : 'Skieruj kamerę na kod QR lub metkę produktu'}
+          {isScanning
+            ? 'Analizowanie produktu...'
+            : error
+              ? 'Lub użyj przycisku testowego poniżej'
+              : cameraStarted
+                ? 'Skieruj kamerę na kod QR produktu'
+                : 'Uruchamianie kamery...'}
         </p>
       </div>
 
-      {/* Scan Button */}
-      <div className="p-4 safe-bottom">
-        <Button
-          onClick={onScan}
-          disabled={isScanning}
-          size="lg"
-          className="w-full h-14 text-lg font-display gradient-eco border-0"
-        >
-          {isScanning ? 'Skanowanie...' : 'Zeskanuj produkt'}
-        </Button>
-      </div>
+      {/* Manual Scan Button for Testing */}
+      {!error && (
+        <div className="p-4 safe-bottom space-y-2">
+          <Button
+            onClick={handleManualScan}
+            disabled={isScanning}
+            size="lg"
+            variant="outline"
+            className="w-full h-14 text-lg font-display"
+          >
+            Użyj testowego produktu
+          </Button>
+        </div>
+      )}
     </motion.div>
   );
 }
+
