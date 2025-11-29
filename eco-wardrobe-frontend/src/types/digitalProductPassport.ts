@@ -66,83 +66,84 @@ export interface DigitalProductPassport {
 }
 
 // Funkcja do konwersji Digital Product Passport na Product
-export function convertDPPtoProduct(dpp: DigitalProductPassport): any {
+export function convertDPPtoProduct(dpp: DigitalProductPassport | { productPassport: DigitalProductPassport }): any {
+  const passport = 'productPassport' in dpp ? dpp.productPassport : dpp;
   // Obliczanie eco score na podstawie różnych czynników
   let ecoScore = 100;
 
   // Impact śladu węglowego (maks -30 punktów)
-  if (dpp.environmentalImpact.carbonFootprint_kgCO2e > 5) {
-    ecoScore -= Math.min(30, (dpp.environmentalImpact.carbonFootprint_kgCO2e - 5) * 5);
+  if (passport.environmentalImpact.carbonFootprint_kgCO2e > 5) {
+    ecoScore -= Math.min(30, (passport.environmentalImpact.carbonFootprint_kgCO2e - 5) * 5);
   }
 
   // Recycled content (+10 punktów jeśli > 50%)
-  if (dpp.environmentalImpact.recycledContentPercentage > 50) {
+  if (passport.environmentalImpact.recycledContentPercentage > 50) {
     ecoScore += 10;
-  } else if (dpp.environmentalImpact.recycledContentPercentage === 0) {
+  } else if (passport.environmentalImpact.recycledContentPercentage === 0) {
     ecoScore -= 15;
   }
 
   // Substancje niebezpieczne (-20 punktów)
-  if (dpp.environmentalImpact.hazardousSubstances.length > 0) {
+  if (passport.environmentalImpact.hazardousSubstances.length > 0) {
     ecoScore -= 20;
   }
 
   // Recyklowalność
-  if (dpp.endOfLife.recyclabilityPercentage < 50) {
+  if (passport.endOfLife.recyclabilityPercentage < 50) {
     ecoScore -= 20;
   }
 
   // Naprawialność
-  if (dpp.durabilityAndCare.repairability.repairDifficulty === 'high') {
+  if (passport.durabilityAndCare.repairability.repairDifficulty === 'high') {
     ecoScore -= 10;
-  } else if (dpp.durabilityAndCare.repairability.repairDifficulty === 'low') {
+  } else if (passport.durabilityAndCare.repairability.repairDifficulty === 'low') {
     ecoScore += 5;
   }
 
   // Certyfikaty materiałów
-  const hasCertifications = dpp.materialComposition.some(m => m.certifications.length > 0);
+  const hasCertifications = passport.materialComposition.some(m => m.certifications.length > 0);
   if (hasCertifications) {
     ecoScore += 10;
   }
 
   ecoScore = Math.max(0, Math.min(100, ecoScore));
 
-  const materials = dpp.materialComposition.map(m => ({
+  const materials = passport.materialComposition.map(m => ({
     name: m.material,
     percentage: m.percentage,
-    isNatural: ['Cotton', 'Wool', 'Silk', 'Linen', 'Hemp'].includes(m.material),
+    isNatural: ['Cotton', 'Wool', 'Silk', 'Linen', 'Hemp', 'Bamboo', 'Alpaca'].includes(m.material),
     isRecycled: m.certifications.some(c => c.toLowerCase().includes('recycled'))
   }));
 
   const recyclability =
-    dpp.endOfLife.recyclabilityPercentage >= 80 ? 'full' :
-    dpp.endOfLife.recyclabilityPercentage >= 40 ? 'partial' : 'none';
+    passport.endOfLife.recyclabilityPercentage >= 80 ? 'full' :
+    passport.endOfLife.recyclabilityPercentage >= 40 ? 'partial' : 'none';
 
-  const repairable = dpp.durabilityAndCare.repairability.repairDifficulty !== 'high';
+  const repairable = passport.durabilityAndCare.repairability.repairDifficulty !== 'high';
 
   // Environmental impact score (1-10, lower is better)
   const environmentalImpact = Math.min(10, Math.max(1,
-    Math.round(dpp.environmentalImpact.carbonFootprint_kgCO2e / 2)
+    Math.round(passport.environmentalImpact.carbonFootprint_kgCO2e / 2)
   ));
 
   return {
-    passport: dpp,
+    passport,
     product: {
-      id: dpp.product.productId,
-      name: dpp.product.name,
-      brand: dpp.product.brand,
-      category: mapCategory(dpp.product.category),
-      imageUrl: '', // Brak zdjęcia - użytkownik może dodać własne
+      id: passport.product.productId,
+      name: passport.product.name,
+      brand: passport.product.brand,
+      category: mapCategory(passport.product.category),
+      imageUrl: '',
       materials,
       ecoScore,
       ecoRating: getEcoRating(ecoScore),
-      durability: dpp.durabilityAndCare.expectedLifetime_cycles,
+      durability: passport.durabilityAndCare.expectedLifetime_cycles,
       environmentalImpact,
       recyclability,
       repairable,
       secondHand: false,
-      careInstructions: [dpp.durabilityAndCare.washInstructions],
-      facts: generateFacts(dpp),
+      careInstructions: [passport.durabilityAndCare.washInstructions],
+      facts: generateFacts(passport),
       addedAt: new Date()
     }
   };
