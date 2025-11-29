@@ -7,6 +7,7 @@ import ee.pw.ecowardrobebackend.entity.sharing.SavedUserWardrobe;
 import ee.pw.ecowardrobebackend.entity.sharing.WardrobeShare;
 import ee.pw.ecowardrobebackend.entity.user.User;
 import ee.pw.ecowardrobebackend.repository.WardrobeShareRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -51,6 +52,7 @@ public class WardrobeShareService {
         );
     }
 
+    @Transactional
     public boolean addUserWardrobe(String shareCode, UUID userId) {
         Optional<WardrobeShare> wardrobeShare = wardrobeShareRepository.findByShareCode(shareCode);
 
