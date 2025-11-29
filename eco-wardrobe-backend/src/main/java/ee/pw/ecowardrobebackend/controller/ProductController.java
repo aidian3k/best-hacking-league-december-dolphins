@@ -3,9 +3,7 @@ package ee.pw.ecowardrobebackend.controller;
 import ee.pw.ecowardrobebackend.dto.product.CreateProductDTO;
 import ee.pw.ecowardrobebackend.dto.product.WardrobeItemsDTO;
 import ee.pw.ecowardrobebackend.entity.product.Product;
-import ee.pw.ecowardrobebackend.entity.user.User;
-import ee.pw.ecowardrobebackend.repository.ProductRepository;
-import ee.pw.ecowardrobebackend.repository.UserRepository;
+import ee.pw.ecowardrobebackend.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,35 +20,20 @@ import java.util.UUID;
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
 public class ProductController {
-    private final ProductRepository productRepository;
-    private final UserRepository userRepository;
+    private final ProductService productService;
 
     @PostMapping("/create/{id}")
     public ResponseEntity<Product> createProduct(
             @RequestBody CreateProductDTO createProductDTO,
             @PathVariable(name = "id") UUID userId
     ) {
-        final Product product = Product
-                .builder()
-                .productInformation(createProductDTO.productInformation())
-                .materialCompositions(createProductDTO.materialCompositions())
-                .productEnvironmentImpact(createProductDTO.productEnvironmentImpact())
-                .manufacturing(createProductDTO.manufacturing())
-                .durabilityAndCare(createProductDTO.durabilityAndCare())
-                .endOfLife(createProductDTO.endOfLife())
-                .supplyChainTraceability(createProductDTO.supplyChainTraceability())
-                .metadata(createProductDTO.metadata())
-                .image(createProductDTO.image())
-                .build();
-        final Product persistedProduct = productRepository.save(product);
-        return ResponseEntity.ok(persistedProduct);
+        final Product product = productService.createProduct(createProductDTO, userId);
+        return ResponseEntity.ok(product);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<WardrobeItemsDTO> getUserWardrobeItems(@PathVariable(name = "id") UUID userId) {
-        final User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User with id " + userId + " not found"));
-
-        return new ResponseEntity<>(new WardrobeItemsDTO(user.getProducts()), HttpStatus.OK);
+        final WardrobeItemsDTO wardrobeItems = productService.getUserWardrobeItems(userId);
+        return new ResponseEntity<>(wardrobeItems, HttpStatus.OK);
     }
 }
