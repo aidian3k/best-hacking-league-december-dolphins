@@ -2,7 +2,9 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { EcoScore, EcoScoreBar } from '@/components/ui/EcoScore';
-import { mockProducts, calculateWardrobeStats } from '@/data/mockData';
+import { useProductsQuery } from '@/api/products';
+import { useUser } from '@/contexts/UserContext';
+import { calculateWardrobeStats, emptyWardrobeStats } from '@/services/wardrobeStats';
 import { categoryLabels, Category } from '@/types/product';
 import { 
   Leaf, 
@@ -31,7 +33,15 @@ const COLORS = {
 };
 
 export default function Analytics() {
-  const stats = useMemo(() => calculateWardrobeStats(mockProducts), []);
+  const { user } = useUser();
+  const { data: products, isLoading } = useProductsQuery(user?.id || null);
+
+  const stats = useMemo(() => {
+    if (!products) {
+      return emptyWardrobeStats;
+    }
+    return calculateWardrobeStats(products);
+  }, [products]);
 
   const materialData = [
     { name: 'Naturalne', value: stats.naturalMaterialsPercent, color: COLORS.natural },
@@ -46,10 +56,25 @@ export default function Analytics() {
       ecoScore: data.avgEcoScore,
     }));
 
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="px-4 pt-4 pb-8 safe-top">
+          <div className="mb-6">
+            <h1 className="font-display font-bold text-2xl">Analiza szafy</h1>
+            <p className="text-muted-foreground text-sm">Szczegółowe statystyki ekologiczne</p>
+          </div>
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <p className="text-muted-foreground">Ładowanie danych...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="px-4 pt-4 pb-8 safe-top">
-        {/* Header */}
         <div className="mb-6">
           <h1 className="font-display font-bold text-2xl">Analiza szafy</h1>
           <p className="text-muted-foreground text-sm">Szczegółowe statystyki ekologiczne</p>

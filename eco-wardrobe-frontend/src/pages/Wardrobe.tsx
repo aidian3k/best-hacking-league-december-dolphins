@@ -5,24 +5,33 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { ProductCard } from '@/components/wardrobe/ProductCard';
 import { CategoryFilter } from '@/components/wardrobe/CategoryFilter';
 import { WardrobeStatsMini } from '@/components/wardrobe/WardrobeStats';
-import { mockProducts, calculateWardrobeStats } from '@/data/mockData';
-import { Category, Product } from '@/types/product';
+import { useProductsQuery } from '@/api/products';
+import { useUser } from '@/contexts/UserContext';
+import { calculateWardrobeStats, emptyWardrobeStats } from '@/services/wardrobeStats';
+import { Category } from '@/types/product';
 import { ScanLine, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Wardrobe() {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all');
-  const [products] = useState<Product[]>(mockProducts);
+  const { user } = useUser();
+  const { data: products, isLoading } = useProductsQuery(user?.id || null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const filteredProducts = useMemo(() => {
+    if (!products) return [];
     if (selectedCategory === 'all') return products;
     return products.filter(p => p.category === selectedCategory);
   }, [products, selectedCategory]);
 
-  const stats = useMemo(() => calculateWardrobeStats(products), [products]);
+  const stats = useMemo(() => {
+    if (!products) {
+      return emptyWardrobeStats;
+    }
+    return calculateWardrobeStats(products);
+  }, [products]);
 
   const handleShare = () => {
     toast({
@@ -94,27 +103,34 @@ export default function Wardrobe() {
           </motion.div>
         )}
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-2 gap-3 pb-4">
-          {filteredProducts.map((product, index) => (
-            <motion.div
-              key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <ProductCard
-                product={product}
-                onClick={() => navigate(`/product/${product.id}`)}
-              />
-            </motion.div>
-          ))}
-        </div>
-
-        {filteredProducts.length === 0 && (
+        {isLoading ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">Brak produktów w tej kategorii</p>
+            <p className="text-muted-foreground">Ładowanie produktów...</p>
           </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-3 pb-4">
+              {filteredProducts.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <ProductCard
+                    product={product}
+                    onClick={() => navigate(`/product/${product.id}`)}
+                  />
+                </motion.div>
+              ))}
+            </div>
+
+            {filteredProducts.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">Brak produktów w tej kategorii</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </AppLayout>

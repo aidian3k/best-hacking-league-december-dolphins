@@ -2,24 +2,24 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ProductDetails } from '@/components/scanner/ProductDetails';
 import { useProductsQuery } from '@/api/products';
-import { useUser } from '@/contexts/UserContext';
 import { calculateWardrobeStats, emptyWardrobeStats } from '@/services/wardrobeStats';
-import { useToast } from '@/hooks/use-toast';
+import { mockInfluencers } from '@/data/mockData';
 import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useMemo } from 'react';
 
-export default function ProductDetail() {
-  const { id } = useParams<{ id: string }>();
+export default function PublicProductDetail() {
+  const { influencerId, productId } = useParams<{ influencerId: string; productId: string }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { user } = useUser();
-  const { data: products, isLoading } = useProductsQuery(user?.id || null);
+  const { data: products, isLoading } = useProductsQuery(influencerId || null);
+
+  const influencer = useMemo(() => {
+    return mockInfluencers.find(i => i.id === influencerId);
+  }, [influencerId]);
 
   const product = useMemo(() => {
-    if (!products || !id) return null;
-    return products.find(p => p.id === id) || null;
-  }, [products, id]);
+    if (!products || !productId) return null;
+    return products.find(p => p.id === productId) || null;
+  }, [products, productId]);
 
   const wardrobeStats = useMemo(() => {
     if (!products) {
@@ -38,34 +38,32 @@ export default function ProductDetail() {
     );
   }
 
-  if (!product) {
+  if (!influencer) {
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
-          <p className="text-muted-foreground mb-4">Produkt nie został znaleziony</p>
-          <Button onClick={() => navigate('/wardrobe')}>
-            Wróć do szafy
-          </Button>
+          <p className="text-muted-foreground mb-4">Nie znaleziono szafy</p>
         </div>
       </AppLayout>
     );
   }
 
-  const handleRemoveFromWardrobe = () => {
-    toast({
-      title: 'Usunięto z szafy',
-      description: `${product.name} został usunięty z Twojej szafy.`,
-    });
-    navigate('/wardrobe');
-  };
+  if (!product) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+          <p className="text-muted-foreground mb-4">Produkt nie został znaleziony</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   const handleBack = () => {
-    navigate('/wardrobe');
+    navigate(`/public-wardrobe/${influencerId}`);
   };
 
   return (
     <AppLayout showNav={false}>
-      {/* Back button header */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border safe-top">
         <div className="flex items-center p-4">
           <button onClick={handleBack} className="text-foreground">
@@ -79,11 +77,13 @@ export default function ProductDetail() {
         <ProductDetails
           product={product}
           wardrobeAvgScore={wardrobeStats.avgEcoScore}
-          onAddToWardrobe={handleRemoveFromWardrobe}
+          onAddToWardrobe={handleBack}
           onScanAgain={handleBack}
-          isInWardrobe={true}
+          isPublic={true}
+          influencerName={influencer.name}
         />
       </div>
     </AppLayout>
   );
 }
+

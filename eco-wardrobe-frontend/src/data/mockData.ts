@@ -174,7 +174,7 @@ export const mockProducts: Product[] = [
 
 export const mockInfluencers: Influencer[] = [
   {
-    id: '1',
+    id: '11111111-1111-4111-8111-111111111111',
     name: 'Anna Kowalska',
     handle: '@anna_eco_style',
     avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
@@ -184,7 +184,7 @@ export const mockInfluencers: Influencer[] = [
     verified: true,
   },
   {
-    id: '2',
+    id: '22222222-2222-4222-8222-222222222222',
     name: 'Piotr Zielony',
     handle: '@piotr_sustainable',
     avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200',
@@ -194,7 +194,7 @@ export const mockInfluencers: Influencer[] = [
     verified: true,
   },
   {
-    id: '3',
+    id: '33333333-3333-4333-8333-333333333333',
     name: 'Maja Natura',
     handle: '@maja_natura_pl',
     avatarUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200',
@@ -204,7 +204,7 @@ export const mockInfluencers: Influencer[] = [
     verified: true,
   },
   {
-    id: '4',
+    id: '44444444-4444-4444-8444-444444444444',
     name: 'Tomek EcoWarrior',
     handle: '@tomek_eco',
     avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200',

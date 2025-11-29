@@ -5,7 +5,9 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { ProductCard } from '@/components/wardrobe/ProductCard';
 import { CategoryFilter } from '@/components/wardrobe/CategoryFilter';
 import { EcoScore } from '@/components/ui/EcoScore';
-import { mockProducts, mockInfluencers, calculateWardrobeStats } from '@/data/mockData';
+import { useProductsQuery } from '@/api/products';
+import { mockInfluencers } from '@/data/mockData';
+import { calculateWardrobeStats, emptyWardrobeStats } from '@/services/wardrobeStats';
 import { Category } from '@/types/product';
 import { ArrowLeft, BadgeCheck, Users, Shirt, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,12 +20,19 @@ export default function PublicWardrobe() {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all');
 
   const influencer = mockInfluencers.find(i => i.id === id);
-  const stats = useMemo(() => calculateWardrobeStats(mockProducts), []);
+  const { data: products, isLoading } = useProductsQuery(id || null);
+
+  const stats = useMemo(() => {
+    if (!products) {
+      return emptyWardrobeStats;
+    }
+    return calculateWardrobeStats(products);
+  }, [products]);
 
   const filteredProducts = useMemo(() => {
-    if (selectedCategory === 'all') return mockProducts;
-    return mockProducts.filter(p => p.category === selectedCategory);
-  }, [selectedCategory]);
+    if (selectedCategory === 'all') return products;
+    return products.filter(p => p.category === selectedCategory);
+  }, [products, selectedCategory]);
 
   const formatFollowers = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -48,13 +57,23 @@ export default function PublicWardrobe() {
     );
   }
 
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <p className="text-muted-foreground">Ładowanie szafy...</p>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="px-4 pt-4 pb-8 safe-top">
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/influencers')}
             className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -134,18 +153,27 @@ export default function PublicWardrobe() {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {filteredProducts.map((product, index) => (
-            <motion.div
-              key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 + index * 0.05 }}
-            >
-              <ProductCard product={product} />
-            </motion.div>
-          ))}
-        </div>
+        {filteredProducts.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Brak produktów w tej kategorii</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {filteredProducts.map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 + index * 0.05 }}
+              >
+                <ProductCard
+                  product={product}
+                  onClick={() => navigate(`/public-wardrobe/${id}/product/${product.id}`)}
+                />
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </AppLayout>
   );

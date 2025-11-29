@@ -1,8 +1,10 @@
 import { Product, categoryLabels } from '@/types/product';
 import { EcoScore } from '@/components/ui/EcoScore';
+import { ProductImagePlaceholder } from '@/components/ui/ProductImagePlaceholder';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Recycle, Wrench, Heart } from 'lucide-react';
+import { useState } from 'react';
 
 interface ProductCardProps {
   product: Product;
@@ -11,6 +13,9 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onClick, className }: ProductCardProps) {
+  const hasValidImage = product.imageUrl && product.imageUrl !== '/api/placeholder/400/300';
+  const [imageError, setImageError] = useState(false);
+
   return (
     <motion.div
       whileHover={{ y: -4 }}
@@ -22,12 +27,19 @@ export function ProductCard({ product, onClick, className }: ProductCardProps) {
         className
       )}
     >
-      <div className="relative aspect-square">
-        <img
-          src={product.imageUrl}
-          alt={product.name}
-          className="w-full h-full object-cover"
-        />
+      <div className="relative aspect-square bg-muted">
+        {hasValidImage && !imageError ? (
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="w-full h-full object-cover"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <ProductImagePlaceholder size="lg" className="w-full h-full rounded-none" />
+          </div>
+        )}
         <div className="absolute top-2 right-2">
           <EcoScore score={product.ecoScore} size="sm" animated={false} />
         </div>
@@ -64,17 +76,25 @@ interface ProductCardMiniProps {
 }
 
 export function ProductCardMini({ product, onClick }: ProductCardMiniProps) {
+  const hasValidImage = product.imageUrl && product.imageUrl !== '/api/placeholder/400/300';
+  const [imageError, setImageError] = useState(false);
+
   return (
     <motion.div
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
       className="flex items-center gap-3 p-3 bg-card rounded-lg border border-border cursor-pointer hover:border-primary/30 transition-colors"
     >
-      <img
-        src={product.imageUrl}
-        alt={product.name}
-        className="w-12 h-12 rounded-lg object-cover"
-      />
+      {hasValidImage && !imageError ? (
+        <img
+          src={product.imageUrl}
+          alt={product.name}
+          className="w-12 h-12 rounded-lg object-cover"
+          onError={() => setImageError(true)}
+        />
+      ) : (
+        <ProductImagePlaceholder size="sm" className="w-12 h-12" />
+      )}
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm truncate">{product.name}</p>
         <p className="text-xs text-muted-foreground">{product.brand}</p>
