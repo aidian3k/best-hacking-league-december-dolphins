@@ -38,6 +38,7 @@ public class ProductController {
                 .endOfLife(createProductDTO.endOfLife())
                 .supplyChainTraceability(createProductDTO.supplyChainTraceability())
                 .metadata(createProductDTO.metadata())
+                .image(createProductDTO.image())
                 .build();
         final Product persistedProduct = productRepository.save(product);
         return ResponseEntity.ok(persistedProduct);

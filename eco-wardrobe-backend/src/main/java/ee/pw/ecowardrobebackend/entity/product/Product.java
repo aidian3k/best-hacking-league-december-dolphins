@@ -48,4 +48,8 @@ public class Product extends Auditable {
 
     @Embedded
     private Metadata metadata;
+
+    @Lob
+    @Column(columnDefinition = "BLOB")
+    private byte[] image;
 }

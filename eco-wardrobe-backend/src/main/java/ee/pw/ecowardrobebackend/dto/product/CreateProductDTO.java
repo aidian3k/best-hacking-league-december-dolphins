@@ -21,5 +21,6 @@ public record CreateProductDTO(
         DurabilityAndCare durabilityAndCare,
         EndOfLife endOfLife,
         SupplyChainTraceability supplyChainTraceability,
-        Metadata metadata
+        Metadata metadata,
+        byte[] image
 ) {}
