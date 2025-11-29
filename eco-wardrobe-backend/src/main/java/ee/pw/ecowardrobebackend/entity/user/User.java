@@ -2,6 +2,7 @@ package ee.pw.ecowardrobebackend.entity.user;
 
 import ee.pw.ecowardrobebackend.entity.common.Auditable;
 import ee.pw.ecowardrobebackend.entity.product.Product;
+import ee.pw.ecowardrobebackend.entity.sharing.SavedUserWardrobe;
 import ee.pw.ecowardrobebackend.entity.sharing.WardrobeShare;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -41,6 +42,12 @@ public class User extends Auditable {
     @EqualsAndHashCode.Exclude
     @Builder.Default
     private Set<Product> products = new HashSet<>();
+
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @Builder.Default
+    private Set<SavedUserWardrobe> savedUserWardrobes = new HashSet<>();
 
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @ToString.Exclude

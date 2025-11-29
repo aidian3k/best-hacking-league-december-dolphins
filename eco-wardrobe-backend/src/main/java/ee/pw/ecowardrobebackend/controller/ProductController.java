@@ -46,7 +46,8 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ResponseEntity<WardrobeItemsDTO> getUserWardrobeItems(@PathVariable(name = "id") UUID userId) {
-        final User user = userRepository.findById(userId)
+        final User user = userRepository
+                .findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User with id " + userId + " not found"));
 
         return new ResponseEntity<>(new WardrobeItemsDTO(user.getProducts()), HttpStatus.OK);
