@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
+import { cn, getProductImageUrl, fileToBase64, base64ToDataUrl } from '@/lib/utils';
 
 interface ProductDetailsProps {
   product: Product;
@@ -52,16 +52,21 @@ export function ProductDetails({
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const productImageUrl = getProductImageUrl(product);
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setIsUploading(true);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadedImage(reader.result as string);
+      try {
+        const base64 = await fileToBase64(file);
+        const dataUrl = base64ToDataUrl(base64);
+        setUploadedImage(dataUrl);
+      } catch (error) {
+        console.error('Błąd przetwarzania obrazu:', error);
+      } finally {
         setIsUploading(false);
-      };
-      reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -112,10 +117,10 @@ export function ProductDetails({
 
       {/* Product Image & Score */}
       <div className="relative">
-        {(uploadedImage || (product.imageUrl && !product.imageUrl.includes('placeholder'))) ? (
+        {(uploadedImage || (productImageUrl && !productImageUrl.includes('placeholder'))) ? (
           <>
             <img
-              src={uploadedImage || product.imageUrl}
+              src={uploadedImage || productImageUrl}
               alt={product.name}
               className="w-full aspect-[4/3] object-cover"
             />
