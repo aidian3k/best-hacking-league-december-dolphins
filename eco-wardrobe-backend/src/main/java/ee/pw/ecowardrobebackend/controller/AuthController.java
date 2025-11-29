@@ -1,76 +1,47 @@
 package ee.pw.ecowardrobebackend.controller;
 
-import ee.pw.ecowardrobebackend.dto.UserDTO;
-import ee.pw.ecowardrobebackend.dto.UserRegistrationDTO;
-import ee.pw.ecowardrobebackend.entity.User;
+import ee.pw.ecowardrobebackend.dto.user.UserDTO;
+import ee.pw.ecowardrobebackend.dto.user.UserLoginRequestDTO;
+import ee.pw.ecowardrobebackend.dto.user.UserRegistrationDTO;
+import ee.pw.ecowardrobebackend.entity.user.User;
 import ee.pw.ecowardrobebackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-public class AuthController {
-
+class AuthController {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
-    public ResponseEntity<UserDTO> register(@RequestBody UserRegistrationDTO dto) {
-        User user = new User();
-        user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
-        user.setFirstName(dto.getFirstName());
-        user.setLastName(dto.getLastName());
-
-        User saved = userRepository.save(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapToDTO(saved));
+    public ResponseEntity<UserDTO> register(@RequestBody UserRegistrationDTO userRegistrationDTO) {
+        final User persistedUser = userRepository.save(
+                User.builder()
+                        .name(userRegistrationDTO.name())
+                        .email(userRegistrationDTO.email())
+                        .password(passwordEncoder.encode(userRegistrationDTO.password()))
+                        .build()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(UserDTO.
+                builder().id(persistedUser.getId()).name(userRegistrationDTO.name()).email(userRegistrationDTO.email()).build());
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserDTO> login(@RequestBody LoginRequest req) {
-        Optional<User> user = userRepository.findByEmail(req.getEmail());
-        if (user.isPresent() && user.get().getPassword().equals(req.getPassword())) {
-            return ResponseEntity.ok(mapToDTO(user.get()));
+    public ResponseEntity<UserDTO> login(@RequestBody UserLoginRequestDTO userLoginRequestDTO) {
+        Optional<User> optionalUser = userRepository.findByEmail(userLoginRequestDTO.email());
+        if (optionalUser.isPresent() && passwordEncoder.matches(userLoginRequestDTO.password(), optionalUser.get().getPassword())) {
+            final User user = optionalUser.get();
+            return ResponseEntity.ok(UserDTO.
+                    builder().id(user.getId()).name(user.getName()).email(user.getEmail()).build());
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
-
-    @GetMapping("/user/{id}")
-    public ResponseEntity<UserDTO> getUser(@PathVariable UUID id) {
-        return userRepository.findById(id)
-            .map(u -> ResponseEntity.ok(mapToDTO(u)))
-            .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PutMapping("/user/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable UUID id, @RequestBody UserDTO dto) {
-        return userRepository.findById(id)
-            .map(user -> {
-                user.setFirstName(dto.getFirstName());
-                user.setLastName(dto.getLastName());
-                user.setBio(dto.getBio());
-                user.setProfilePictureUrl(dto.getProfilePictureUrl());
-                User updated = userRepository.save(user);
-                return ResponseEntity.ok(mapToDTO(updated));
-            })
-            .orElse(ResponseEntity.notFound().build());
-    }
-
-    private UserDTO mapToDTO(User user) {
-        return new UserDTO(user.getId(), user.getEmail(), user.getFirstName(),
-            user.getLastName(), user.getBio(), user.getProfilePictureUrl(),
-            user.getCreatedAt(), user.getUpdatedAt());
-    }
-
-    @lombok.Data
-    public static class LoginRequest {
-        private String email;
-        private String password;
     }
 }
 

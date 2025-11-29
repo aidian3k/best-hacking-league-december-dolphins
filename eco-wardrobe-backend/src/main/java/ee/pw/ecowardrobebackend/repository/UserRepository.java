@@ -1,6 +1,6 @@
 package ee.pw.ecowardrobebackend.repository;
 
-import ee.pw.ecowardrobebackend.entity.User;
+import ee.pw.ecowardrobebackend.entity.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

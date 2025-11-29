@@ -1,87 +1,53 @@
 package ee.pw.ecowardrobebackend.controller;
 
-import ee.pw.ecowardrobebackend.dto.ProductDTO;
-import ee.pw.ecowardrobebackend.entity.Product;
+import ee.pw.ecowardrobebackend.dto.product.CreateProductDTO;
+import ee.pw.ecowardrobebackend.dto.product.WardrobeItemsDTO;
+import ee.pw.ecowardrobebackend.entity.product.Product;
+import ee.pw.ecowardrobebackend.entity.user.User;
 import ee.pw.ecowardrobebackend.repository.ProductRepository;
+import ee.pw.ecowardrobebackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-@RestController
-@RequestMapping("/api/products")
+@RestController("/api/products")
 @RequiredArgsConstructor
 public class ProductController {
-
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
 
-    @GetMapping("/scan/{barcode}")
-    public ResponseEntity<ProductDTO> scanProduct(@PathVariable String barcode) {
-        return productRepository.findByBarcode(barcode)
-            .map(p -> ResponseEntity.ok(mapToDTO(p)))
-            .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PostMapping
-    public ResponseEntity<ProductDTO> createProduct(@RequestBody ProductDTO dto) {
-        Product product = new Product();
-        product.setName(dto.getName());
-        product.setDescription(dto.getDescription());
-        product.setCategory(dto.getCategory());
-        product.setBrand(dto.getBrand());
-        product.setEcoScore(dto.getEcoScore());
-        product.setImageUrl(dto.getImageUrl());
-        product.setBarcode(dto.getBarcode());
-
-        Product saved = productRepository.save(product);
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapToDTO(saved));
+    @PostMapping("/create/{id}")
+    public ResponseEntity<Product> createProduct(
+            @RequestBody CreateProductDTO createProductDTO,
+            @PathVariable(name = "id") UUID userId
+    ) {
+        final Product product = Product
+                .builder()
+                .productInformation(createProductDTO.productInformation())
+                .materialCompositions(createProductDTO.materialCompositions())
+                .productEnvironmentImpact(createProductDTO.productEnvironmentImpact())
+                .manufacturing(createProductDTO.manufacturing())
+                .durabilityAndCare(createProductDTO.durabilityAndCare())
+                .endOfLife(createProductDTO.endOfLife())
+                .supplyChainTraceability(createProductDTO.supplyChainTraceability())
+                .metadata(createProductDTO.metadata())
+                .build();
+        final Product persistedProduct = productRepository.save(product);
+        return ResponseEntity.ok(persistedProduct);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDTO> getProduct(@PathVariable UUID id) {
-        return productRepository.findById(id)
-            .map(p -> ResponseEntity.ok(mapToDTO(p)))
-            .orElse(ResponseEntity.notFound().build());
-    }
+    public ResponseEntity<WardrobeItemsDTO> getUserWardrobeItems(@PathVariable(name = "id") UUID userId) {
+        final User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User with id " + userId + " not found"));
 
-    @GetMapping("/category/{category}")
-    public ResponseEntity<List<ProductDTO>> getByCategory(@PathVariable String category) {
-        List<ProductDTO> products = productRepository.findByCategory(category)
-            .stream()
-            .map(this::mapToDTO)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(products);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<ProductDTO> updateProduct(@PathVariable UUID id, @RequestBody ProductDTO dto) {
-        return productRepository.findById(id)
-            .map(product -> {
-                product.setName(dto.getName());
-                product.setDescription(dto.getDescription());
-                product.setCategory(dto.getCategory());
-                product.setBrand(dto.getBrand());
-                product.setEcoScore(dto.getEcoScore());
-                product.setImageUrl(dto.getImageUrl());
-                Product updated = productRepository.save(product);
-                return ResponseEntity.ok(mapToDTO(updated));
-            })
-            .orElse(ResponseEntity.notFound().build());
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable UUID id) {
-        productRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    private ProductDTO mapToDTO(Product product) {
-        return new ProductDTO(product.getId(), product.getName(), product.getDescription(),
-            product.getCategory(), product.getBrand(), product.getEcoScore(),
-            product.getImageUrl(), product.getBarcode(), product.getCreatedAt(), product.getUpdatedAt());
+        return new ResponseEntity<>(new WardrobeItemsDTO(user.getProducts()), HttpStatus.OK);
     }
 }
