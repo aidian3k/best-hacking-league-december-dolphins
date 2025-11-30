@@ -156,7 +156,7 @@ export default function Analytics() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <EcoScore score={stats.avgEcoScore} size="lg" showLabel />
+              <EcoScore score={stats.avgEcoScore} size="lg" showLabel isEmpty={stats.totalItems === 0} />
               <span className="text-xs text-muted-foreground">/100</span>
             </div>
           </div>
