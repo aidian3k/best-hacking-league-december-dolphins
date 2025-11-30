@@ -60,9 +60,6 @@ public class User extends Auditable {
     @EqualsAndHashCode.Exclude
     private Set<WardrobeShare> wardrobeShares = new HashSet<>();
 
-    @ElementCollection
-    private Set<Allergy> allergies = new HashSet<>();
-
-    @ElementCollection
-    private Set<PreferredMaterials> preferredMaterials = new HashSet<>();
+    @Embedded
+    private Preference preference;
 }
