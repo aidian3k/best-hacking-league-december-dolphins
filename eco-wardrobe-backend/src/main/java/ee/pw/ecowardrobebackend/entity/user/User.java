@@ -49,6 +49,12 @@ public class User extends Auditable {
     @Builder.Default
     private Set<SavedUserWardrobe> savedUserWardrobes = new HashSet<>();
 
+    @Lob
+    @Column(name = "profile_picture", columnDefinition = "BLOB")
+    private byte[] profilePicture;
+
+    private boolean isInfluencer;
+
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

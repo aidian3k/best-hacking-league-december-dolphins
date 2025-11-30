@@ -1,5 +1,6 @@
 package ee.pw.ecowardrobebackend.service;
 
+import ee.pw.ecowardrobebackend.dto.user.AddUserPhotoRequestDTO;
 import ee.pw.ecowardrobebackend.dto.user.UserDTO;
 import ee.pw.ecowardrobebackend.dto.user.UserLoginRequestDTO;
 import ee.pw.ecowardrobebackend.dto.user.UserRegistrationDTO;
@@ -30,6 +31,8 @@ public class UserService {
                 .id(persistedUser.getId())
                 .name(persistedUser.getName())
                 .email(persistedUser.getEmail())
+                .profilePicture(persistedUser.getProfilePicture())
+                .isInfluencer(persistedUser.isInfluencer())
                 .build();
     }
 
@@ -41,6 +44,8 @@ public class UserService {
                     .id(user.getId())
                     .name(user.getName())
                     .email(user.getEmail())
+                            .profilePicture(user.getProfilePicture())
+                            .isInfluencer(user.isInfluencer())
                     .build());
         }
         return Optional.empty();
@@ -49,6 +54,19 @@ public class UserService {
     public User getUserById(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User with id " + userId + " not found"));
+    }
+
+    public UserDTO addUserPhoto(AddUserPhotoRequestDTO addUserPhotoRequestDTO, UUID userId) {
+        final User user = getUserById(userId);
+        user.setProfilePicture(addUserPhotoRequestDTO.profilePicture());
+        final User updatedUser = userRepository.save(user);
+        return UserDTO.builder()
+                .id(updatedUser.getId())
+                .name(updatedUser.getName())
+                .email(updatedUser.getEmail())
+                .profilePicture(updatedUser.getProfilePicture())
+                .isInfluencer(updatedUser.isInfluencer())
+                .build();
     }
 
     public User saveUser(User user) {
