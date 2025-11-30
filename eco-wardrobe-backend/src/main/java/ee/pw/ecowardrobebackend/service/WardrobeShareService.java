@@ -71,13 +71,14 @@ public class WardrobeShareService {
         return true;
     }
 
-    public WardrobeShareResponseDTO getSharedInfluencerWardrobes() {
-        return userService.getInfluencers()
-        .stream()
-        .map(user -> new WardrobeShareResponseDTO(
-                user.getId(),
-                user.getName()
-        ))
-        .collect(Collectors.toList());
+    public SavedWardrobeResponseDTO getSharedInfluencerWardrobes() {
+        final Set<SavedWardrobeResponseDTO.SavedWardrobeItemDTO> savedWardrobeItemDTOS = userService.getInfluencers()
+                .stream()
+                .map(influencer -> new SavedWardrobeResponseDTO.SavedWardrobeItemDTO(
+                        UserDTO.builder().id(influencer.getId()).name(influencer.getName()).profilePicture(influencer.getProfilePicture()).isInfluencer(influencer.isInfluencer()).build(),
+                        influencer.getProducts()
+                )).collect(Collectors.toSet());
+
+        return new SavedWardrobeResponseDTO(savedWardrobeItemDTOS);
     }
 }

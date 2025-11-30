@@ -52,8 +52,8 @@ class WardrobeShareController {
     }
 
     @GetMapping("/get-shared-influencers-wardrobes")
-    public ResponseEntity<WardrobeShareResponseDTO> getSharedInfluencersWardrobes() {
-        final WardrobeShareResponseDTO response = wardrobeShareService.getSharedInfluencerWardrobes();
+    public ResponseEntity<SavedWardrobeResponseDTO> getSharedInfluencersWardrobes() {
+        final SavedWardrobeResponseDTO response = wardrobeShareService.getSharedInfluencerWardrobes();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
