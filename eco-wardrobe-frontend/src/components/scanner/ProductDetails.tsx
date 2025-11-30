@@ -22,8 +22,9 @@ import {
   Zap
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
-import {useState} from 'react';
+import {useState, useMemo} from 'react';
 import {base64ToDataUrl, cn, compressImage, getProductImageUrl} from '@/lib/utils';
+import {useUser} from '@/contexts/UserContext';
 
 interface ProductDetailsProps {
   product: Product;
@@ -47,12 +48,37 @@ export function ProductDetails({
   influencerName
 }: ProductDetailsProps) {
   const passport = product.passport;
+  const { user } = useUser();
   const [showAllFacts, setShowAllFacts] = useState(false);
   const [showSupplyChain, setShowSupplyChain] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
   const productImageUrl = getProductImageUrl(product);
+
+  const foundAllergies = useMemo(() => {
+    if (!user?.preferences?.allergies || user.preferences.allergies.length === 0) {
+      return [];
+    }
+    const productMaterialNames = product.materials.map(m => m.name.toLowerCase());
+    return user.preferences.allergies.filter(allergy => 
+      productMaterialNames.some(materialName => 
+        materialName.includes(allergy.toLowerCase()) || allergy.toLowerCase().includes(materialName)
+      )
+    );
+  }, [product.materials, user?.preferences?.allergies]);
+
+  const foundPreferredMaterials = useMemo(() => {
+    if (!user?.preferences?.preferredMaterials || user.preferences.preferredMaterials.length === 0) {
+      return [];
+    }
+    const productMaterialNames = product.materials.map(m => m.name.toLowerCase());
+    return user.preferences.preferredMaterials.filter(preferred => 
+      productMaterialNames.some(materialName => 
+        materialName.includes(preferred.toLowerCase()) || preferred.toLowerCase().includes(materialName)
+      )
+    );
+  }, [product.materials, user?.preferences?.preferredMaterials]);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -127,6 +153,42 @@ export function ProductDetails({
           )}
         </motion.div>
       </div>
+
+      {/* ALLERGIES & PREFERENCES ALERTS */}
+      {!isPublic && user && (foundAllergies.length > 0 || foundPreferredMaterials.length > 0) && (
+        <div className="px-4 py-3 space-y-2">
+          {foundAllergies.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-eco-poor/10 border-2 border-eco-poor/30 rounded-xl p-4"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="w-5 h-5 text-eco-poor" />
+                <h3 className="font-semibold text-eco-poor">Uwaga: Alergeny wykryte</h3>
+              </div>
+              <p className="text-sm text-eco-poor/90">
+                Produkt zawiera materiały, na które masz alergię: <strong>{foundAllergies.join(', ')}</strong>
+              </p>
+            </motion.div>
+          )}
+          {foundPreferredMaterials.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-eco-excellent/10 border-2 border-eco-excellent/30 rounded-xl p-4"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle2 className="w-5 h-5 text-eco-excellent" />
+                <h3 className="font-semibold text-eco-excellent">Preferowane materiały</h3>
+              </div>
+              <p className="text-sm text-eco-excellent/90">
+                Produkt zawiera Twoje preferowane materiały: <strong>{foundPreferredMaterials.join(', ')}</strong>
+              </p>
+            </motion.div>
+          )}
+        </div>
+      )}
 
       {/* Product Image & Score */}
       <div className="relative">
