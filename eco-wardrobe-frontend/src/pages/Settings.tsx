@@ -1,60 +1,156 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { mockUserProfile, mockBadges } from '@/data/mockData';
+import { AvatarUpload } from '@/components/ui/AvatarUpload';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { 
-  User, 
-  AlertCircle, 
-  Heart, 
-  Award, 
   LogOut, 
   ChevronRight,
+  Leaf,
+  AlertCircle,
+  Heart,
   Plus,
-  X,
-  Leaf
+  X
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '@/contexts/UserContext';
+import { useUploadUserPhotoMutation } from '@/api/user';
+import { getUserAvatarUrl, base64ToDataUrl } from '@/lib/utils';
 
 export default function Settings() {
-  const [allergies, setAllergies] = useState<string[]>(mockUserProfile.allergies);
-  const [preferences, setPreferences] = useState<string[]>(mockUserProfile.preferences);
+  const { user, setUser } = useUser();
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [newAllergy, setNewAllergy] = useState('');
   const [newPreference, setNewPreference] = useState('');
   const { toast } = useToast();
   const navigate = useNavigate();
+  const uploadPhotoMutation = useUploadUserPhotoMutation();
+
+  const allergies = user?.preferences?.allergies || [];
+  const preferences = user?.preferences?.preferredMaterials || [];
+
+  const userAvatarUrl = useMemo(() => {
+    if (!user) return undefined;
+    return getUserAvatarUrl(user);
+  }, [user]);
+
+  const displayAvatarUrl = useMemo(() => {
+    if (uploadedImage) {
+      return base64ToDataUrl(uploadedImage);
+    }
+    return userAvatarUrl;
+  }, [uploadedImage, userAvatarUrl]);
+
+  const handleAvatarChange = async (base64: string | null) => {
+    setUploadedImage(base64);
+    
+    if (!user?.id) {
+      return;
+    }
+
+    if (base64 === null) {
+      setUser({
+        ...user,
+        profilePicture: null
+      });
+      return;
+    }
+
+    try {
+      const base64WithoutPrefix = base64.includes(',') ? base64.split(',')[1] : base64;
+      const updatedUser = await uploadPhotoMutation.mutateAsync({
+        userId: user.id,
+        imageBase64: base64WithoutPrefix
+      });
+      setUser(updatedUser);
+      setUploadedImage(null);
+      toast({
+        title: 'Zdjęcie wgrane',
+        description: 'Zdjęcie profilowe zostało zaktualizowane.',
+      });
+    } catch (error) {
+      console.error('Błąd wgrywania zdjęcia:', error);
+      toast({
+        title: 'Błąd',
+        description: error instanceof Error ? error.message : 'Nie udało się wgrać zdjęcia profilowego.',
+        variant: 'destructive',
+      });
+      setUploadedImage(null);
+    }
+  };
 
   const addAllergy = () => {
-    if (newAllergy.trim()) {
-      setAllergies([...allergies, newAllergy.trim()]);
+    if (newAllergy.trim() && user) {
+      const updatedAllergies = [...allergies, newAllergy.trim()];
+      setUser({
+        ...user,
+        preferences: {
+          ...user.preferences,
+          allergies: updatedAllergies
+        }
+      });
       setNewAllergy('');
       toast({ title: 'Dodano alergię' });
     }
   };
 
   const removeAllergy = (index: number) => {
-    setAllergies(allergies.filter((_, i) => i !== index));
+    if (user) {
+      const updatedAllergies = allergies.filter((_, i) => i !== index);
+      setUser({
+        ...user,
+        preferences: {
+          ...user.preferences,
+          allergies: updatedAllergies
+        }
+      });
+    }
   };
 
   const addPreference = () => {
-    if (newPreference.trim()) {
-      setPreferences([...preferences, newPreference.trim()]);
+    if (newPreference.trim() && user) {
+      const updatedPreferences = [...preferences, newPreference.trim()];
+      setUser({
+        ...user,
+        preferences: {
+          ...user.preferences,
+          preferredMaterials: updatedPreferences
+        }
+      });
       setNewPreference('');
       toast({ title: 'Dodano preferencję' });
     }
   };
 
   const removePreference = (index: number) => {
-    setPreferences(preferences.filter((_, i) => i !== index));
+    if (user) {
+      const updatedPreferences = preferences.filter((_, i) => i !== index);
+      setUser({
+        ...user,
+        preferences: {
+          ...user.preferences,
+          preferredMaterials: updatedPreferences
+        }
+      });
+    }
   };
 
   const handleLogout = () => {
     toast({ title: 'Wylogowano' });
     navigate('/');
   };
+
+  if (!user) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+          <p className="text-muted-foreground">Musisz być zalogowany, aby zobaczyć profil</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -72,54 +168,20 @@ export default function Settings() {
           className="bg-card rounded-xl p-4 border border-border mb-6"
         >
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              {mockUserProfile.avatarUrl ? (
-                <img
-                  src={mockUserProfile.avatarUrl}
-                  alt={mockUserProfile.name}
-                  className="w-16 h-16 rounded-full object-cover"
-                />
-              ) : (
-                <User className="w-8 h-8 text-primary-foreground" />
+            <AvatarUpload
+              avatarUrl={displayAvatarUrl}
+              onImageChange={handleAvatarChange}
+              size="sm"
+            />
+            <div className="flex-1">
+              <h2 className="font-semibold text-lg">{user.name}</h2>
+              <p className="text-sm text-muted-foreground">{user.email}</p>
+              {user.isInfluencer && (
+                <span className="inline-block mt-1 text-xs bg-accent text-accent-foreground px-2 py-0.5 rounded-full">
+                  Eko Lider
+                </span>
               )}
             </div>
-            <div className="flex-1">
-              <h2 className="font-semibold text-lg">{mockUserProfile.name}</h2>
-              <p className="text-sm text-muted-foreground">
-                Członek od {mockUserProfile.joinedAt.toLocaleDateString('pl-PL')}
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="font-display font-bold text-2xl text-primary">{mockUserProfile.ecoPoints}</p>
-              <p className="text-xs text-muted-foreground">punktów</p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Badges */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-card rounded-xl p-4 border border-border mb-6"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <Award className="w-5 h-5 text-primary" />
-            <h3 className="font-display font-semibold">Twoje odznaki</h3>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {mockBadges.map((badge) => (
-              <div
-                key={badge.id}
-                className="flex items-center gap-2 bg-muted px-3 py-2 rounded-lg"
-              >
-                <span className="text-xl">{badge.icon}</span>
-                <div>
-                  <p className="text-sm font-medium">{badge.name}</p>
-                  <p className="text-xs text-muted-foreground">{badge.description}</p>
-                </div>
-              </div>
-            ))}
           </div>
         </motion.div>
 
@@ -127,7 +189,7 @@ export default function Settings() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={{ delay: 0.1 }}
           className="bg-card rounded-xl p-4 border border-border mb-6"
         >
           <div className="flex items-center gap-2 mb-4">
@@ -168,7 +230,7 @@ export default function Settings() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.15 }}
           className="bg-card rounded-xl p-4 border border-border mb-6"
         >
           <div className="flex items-center gap-2 mb-4">
@@ -209,7 +271,7 @@ export default function Settings() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          transition={{ delay: 0.2 }}
           className="space-y-2"
         >
           <button className="w-full flex items-center justify-between p-4 bg-card rounded-xl border border-border hover:border-primary/30 transition-colors">

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useUser } from '@/contexts/UserContext';
 import { useToast } from '@/hooks/use-toast';
 import { Product } from '@/types/product';
+import { User } from '@/types/user';
 import { convertDPPtoProduct, convertBackendProductToDPP } from '@/types/digitalProductPassport';
 import {
   BackendSavedWardrobeResponseDTO,
@@ -9,17 +10,13 @@ import {
   BackendAddWardrobeShareRequestDTO,
   BackendSavedWardrobeItemDTO,
 } from './backendTypes';
+import { convertBackendImageToBase64 } from '@/lib/utils';
+import { convertBackendUserToUser } from './userMapper';
 
 const API_BASE_URL = 'http://localhost:8080/api';
 
 export interface SavedWardrobeItem {
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    profilePicture?: string | null;
-    isInfluencer?: boolean;
-  };
+  user: User;
   products: Product[];
 }
 
@@ -47,39 +44,15 @@ async function fetchSavedWardrobes(userId: string): Promise<SavedWardrobeItem[]>
       const converted = convertDPPtoProduct(dpp);
       const product = converted.product;
 
-      if (backendProduct.image && Array.isArray(backendProduct.image) && backendProduct.image.length > 0) {
-        try {
-          const bytes = new Uint8Array(backendProduct.image);
-          const binary = String.fromCharCode(...bytes);
-          const base64Image = btoa(binary);
-          product.image = base64Image;
-        } catch (error) {
-          console.warn('Błąd konwersji obrazu:', error);
-        }
-      }
+      product.image = convertBackendImageToBase64(backendProduct.image) || undefined;
 
       return product;
     });
 
-    let profilePictureBase64: string | null = null;
-    if (item.user.profilePicture && Array.isArray(item.user.profilePicture) && item.user.profilePicture.length > 0) {
-      try {
-        const bytes = new Uint8Array(item.user.profilePicture);
-        const binary = String.fromCharCode(...bytes);
-        profilePictureBase64 = `data:image/jpeg;base64,${btoa(binary)}`;
-      } catch (error) {
-        console.warn('Błąd konwersji zdjęcia profilowego:', error);
-      }
-    }
+    const user = convertBackendUserToUser(item.user);
 
     return {
-      user: {
-        id: item.user.id,
-        email: item.user.email || '',
-        name: item.user.name,
-        profilePicture: profilePictureBase64,
-        isInfluencer: item.user.isInfluencer || false,
-      },
+      user,
       products,
     };
   });
@@ -133,39 +106,15 @@ async function fetchInfluencerWardrobes(): Promise<SavedWardrobeItem[]> {
       const converted = convertDPPtoProduct(dpp);
       const product = converted.product;
 
-      if (backendProduct.image && Array.isArray(backendProduct.image) && backendProduct.image.length > 0) {
-        try {
-          const bytes = new Uint8Array(backendProduct.image);
-          const binary = String.fromCharCode(...bytes);
-          const base64Image = btoa(binary);
-          product.image = base64Image;
-        } catch (error) {
-          console.warn('Błąd konwersji obrazu:', error);
-        }
-      }
+      product.image = convertBackendImageToBase64(backendProduct.image) || undefined;
 
       return product;
     });
 
-    let profilePictureBase64: string | null = null;
-    if (item.user.profilePicture && Array.isArray(item.user.profilePicture) && item.user.profilePicture.length > 0) {
-      try {
-        const bytes = new Uint8Array(item.user.profilePicture);
-        const binary = String.fromCharCode(...bytes);
-        profilePictureBase64 = `data:image/jpeg;base64,${btoa(binary)}`;
-      } catch (error) {
-        console.warn('Błąd konwersji zdjęcia profilowego:', error);
-      }
-    }
+    const user = convertBackendUserToUser(item.user);
 
     return {
-      user: {
-        id: item.user.id,
-        email: item.user.email || '',
-        name: item.user.name,
-        profilePicture: profilePictureBase64,
-        isInfluencer: item.user.isInfluencer || false,
-      },
+      user,
       products,
     };
   });

@@ -1,35 +1,9 @@
 import { useMutation } from '@tanstack/react-query';
 import { User, LoginCredentials, RegisterData } from '@/types/user';
 import { BackendUserDTO } from './backendTypes';
+import { convertBackendUserToUser } from './userMapper';
 
 const API_BASE_URL = 'http://localhost:8080/api';
-
-function convertBackendUserToUser(backendUser: BackendUserDTO): User {
-  let profilePictureBase64: string | null = null;
-  if (backendUser.profilePicture && Array.isArray(backendUser.profilePicture) && backendUser.profilePicture.length > 0) {
-    try {
-      const bytes = new Uint8Array(backendUser.profilePicture);
-      const binary = String.fromCharCode(...bytes);
-      profilePictureBase64 = `data:image/jpeg;base64,${btoa(binary)}`;
-    } catch (error) {
-      console.warn('Błąd konwersji zdjęcia profilowego:', error);
-    }
-  }
-
-  const preferences = backendUser.preference ? {
-    allergies: backendUser.preference.allergies?.map(a => a.name) || [],
-    preferredMaterials: backendUser.preference.preferredMaterials?.map(pm => pm.material) || [],
-  } : undefined;
-
-  return {
-    id: backendUser.id,
-    email: backendUser.email,
-    name: backendUser.name,
-    profilePicture: profilePictureBase64,
-    isInfluencer: backendUser.isInfluencer || false,
-    preferences,
-  };
-}
 
 async function loginUser(credentials: LoginCredentials): Promise<User> {
   const response = await fetch(`${API_BASE_URL}/auth/login`, {

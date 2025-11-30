@@ -74,7 +74,7 @@ export default function Scanner() {
     }
   };
 
-  const handleAddToWardrobe = async (base64image: string) => {
+  const handleAddToWardrobe = async (base64image: string | null) => {
     if (!user?.id) {
       toast({
         title: 'Błąd',

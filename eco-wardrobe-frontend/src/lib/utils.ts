@@ -88,6 +88,11 @@ export function compressImage(
 }
 
 export function base64ToDataUrl(base64: string, mimeType?: string): string {
+  // If already a data URL, return as is
+  if (base64.startsWith('data:')) {
+    return base64;
+  }
+
   // Remove any whitespace from base64 string
   const cleanBase64 = base64.replace(/\s/g, '');
 
@@ -122,4 +127,63 @@ export function getProductImageUrl(product: { image?: string; imageUrl?: string 
     }
   }
   return product.imageUrl;
+}
+
+export function getUserAvatarUrl(user: { profilePicture?: string | null }): string | undefined {
+  if (user.profilePicture) {
+    try {
+      return base64ToDataUrl(user.profilePicture);
+    } catch (error) {
+      console.warn('Błąd tworzenia URL awatara:', error);
+      return undefined;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Converts byte array to base64 string
+ * Processes in chunks to avoid call stack size exceeded errors with large images
+ */
+export function byteArrayToBase64(byteArray: number[]): string {
+  const bytes = new Uint8Array(byteArray);
+  const chunkSize = 0x8000; // 32KB chunks
+  let binary = '';
+
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+    binary += String.fromCharCode.apply(null, Array.from(chunk));
+  }
+
+  return btoa(binary);
+}
+
+/**
+ * Converts base64 string to byte array (number[])
+ */
+export function base64ToByteArray(base64: string): number[] {
+  const binaryString = atob(base64);
+  return Array.from(binaryString, char => char.charCodeAt(0));
+}
+
+/**
+ * Converts backend image (string | number[] | null) to base64 string
+ * Handles both string (already base64) and byte array formats
+ */
+export function convertBackendImageToBase64(image: string | number[] | null | undefined): string | null {
+  if (!image) {
+    return null;
+  }
+
+  try {
+    if (typeof image === 'string') {
+      return image;
+    } else if (Array.isArray(image) && image.length > 0) {
+      return byteArrayToBase64(image);
+    }
+  } catch (error) {
+    console.warn('Błąd konwersji obrazu z backendu:', error);
+  }
+
+  return null;
 }
