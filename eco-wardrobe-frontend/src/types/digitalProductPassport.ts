@@ -165,7 +165,7 @@ export function convertDPPtoProduct(dpp: DigitalProductPassport | { productPassp
       name: passport.product.name,
       brand: passport.product.brand,
       category: mapCategory(passport.product.category),
-      imageUrl: '',
+      imageUrl: '', // Obraz będzie ustawiony w products.ts
       materials,
       ecoScore,
       ecoRating: getEcoRating(ecoScore),

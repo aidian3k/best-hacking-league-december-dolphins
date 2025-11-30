@@ -74,7 +74,7 @@ export default function Scanner() {
     }
   };
 
-  const handleAddToWardrobe = async () => {
+  const handleAddToWardrobe = async (base64image: string) => {
     if (!user?.id) {
       toast({
         title: 'Błąd',
@@ -95,7 +95,7 @@ export default function Scanner() {
 
     try {
       // Wywołanie API z userId, passport i opcjonalnie obrazem
-      await addProductToWardrobe(user.id, passport, scannedProduct?.image);
+      await addProductToWardrobe(user.id, passport, base64image);
 
       toast({
         title: 'Dodano do szafy!',

@@ -1,35 +1,34 @@
-import { Product, categoryLabels, ecoRatingLabels } from '@/types/product';
-import { EcoScore, EcoScoreBar } from '@/components/ui/EcoScore';
-import { ProductImagePlaceholder } from '@/components/ui/ProductImagePlaceholder';
-import { motion } from 'framer-motion';
-import { 
-  Recycle, 
-  Wrench, 
-  Clock, 
-  Leaf, 
+import {categoryLabels, Product} from '@/types/product';
+import {EcoScore} from '@/components/ui/EcoScore';
+import {motion} from 'framer-motion';
+import {
   AlertTriangle,
-  Droplets,
-  ThermometerSun,
-  Info,
+  Award,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
-  CheckCircle2,
-  XCircle,
-  Trash2,
+  Clock,
+  Droplets,
   Factory,
+  Info,
+  Leaf,
   MapPin,
-  Award,
-  Zap,
-  X
+  Recycle,
+  ThermometerSun,
+  Trash2,
+  Wrench,
+  X,
+  XCircle,
+  Zap
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useState } from 'react';
-import { cn, getProductImageUrl, fileToBase64, base64ToDataUrl } from '@/lib/utils';
+import {Button} from '@/components/ui/button';
+import {useState} from 'react';
+import {base64ToDataUrl, cn, fileToBase64, getProductImageUrl} from '@/lib/utils';
 
 interface ProductDetailsProps {
   product: Product;
   wardrobeAvgScore?: number;
-  onAddToWardrobe: () => void;
+  onAddToWardrobe: (base64image: string) => void;
   onScanAgain: () => void;
   onCancel?: () => void;
   isInWardrobe?: boolean;
@@ -38,7 +37,7 @@ interface ProductDetailsProps {
 }
 
 export function ProductDetails({ 
-  product, 
+  product,
   wardrobeAvgScore = 65,
   onAddToWardrobe, 
   onScanAgain,
@@ -57,12 +56,13 @@ export function ProductDetails({
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+
     if (file) {
       setIsUploading(true);
       try {
         const base64 = await fileToBase64(file);
         const dataUrl = base64ToDataUrl(base64);
-        setUploadedImage(dataUrl);
+        setUploadedImage(base64);
       } catch (error) {
         console.error('Błąd przetwarzania obrazu:', error);
       } finally {
@@ -579,7 +579,7 @@ export function ProductDetails({
               </Button>
               <Button
                 variant="destructive"
-                onClick={onAddToWardrobe}
+                onClick={() => onAddToWardrobe(null)}
                 className="flex-1"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
@@ -596,7 +596,7 @@ export function ProductDetails({
                 Skanuj ponownie
               </Button>
               <Button
-                onClick={onAddToWardrobe}
+                onClick={() => onAddToWardrobe(uploadedImage)}
                 className="flex-1 gradient-eco border-0"
               >
                 Dodaj do szafy

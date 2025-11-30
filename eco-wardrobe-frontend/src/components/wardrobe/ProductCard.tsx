@@ -34,7 +34,16 @@ export function ProductCard({ product, onClick, className }: ProductCardProps) {
             src={imageUrl}
             alt={product.name}
             className="w-full h-full object-cover"
-            onError={() => setImageError(true)}
+            onError={(e) => {
+              console.error(`❌ Błąd ładowania obrazu dla "${product.name}":`, {
+                src: imageUrl?.substring(0, 100),
+                error: e
+              });
+              setImageError(true);
+            }}
+            onLoad={() => {
+              console.log(`✅ Obraz załadowany pomyślnie dla "${product.name}"`);
+            }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">

@@ -5,6 +5,23 @@ import { BackendWardrobeItemsDTO, BackendProduct } from './backendTypes';
 
 const API_BASE_URL = 'http://localhost:8080/api';
 
+/**
+ * Converts byte array to base64 string
+ * Processes in chunks to avoid call stack size exceeded errors with large images
+ */
+function byteArrayToBase64(byteArray: number[]): string {
+  const bytes = new Uint8Array(byteArray);
+  const chunkSize = 0x8000; // 32KB chunks
+  let binary = '';
+
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+    binary += String.fromCharCode.apply(null, Array.from(chunk));
+  }
+
+  return btoa(binary);
+}
+
 async function fetchUserProducts(userId: string): Promise<Product[]> {
   const response = await fetch(`${API_BASE_URL}/products/${userId}`, {
     method: 'GET',
@@ -23,33 +40,71 @@ async function fetchUserProducts(userId: string): Promise<Product[]> {
     return [];
   }
 
-  return data.products.map(backendProduct => {
+  const products = data.products.map(backendProduct => {
     const dpp = convertBackendProductToDPP(backendProduct);
-    const converted = convertDPPtoProduct(dpp);
-    
+    const converted = convertDPPtoProduct(dpp); // Nie przekazuj obrazu tutaj
+
     const product = converted.product;
-    
-    if (backendProduct.image && Array.isArray(backendProduct.image) && backendProduct.image.length > 0) {
+
+    // Convert image to base64 string
+    if (backendProduct.image) {
       try {
-        const bytes = new Uint8Array(backendProduct.image);
-        const binary = String.fromCharCode(...bytes);
-        const base64Image = btoa(binary);
-        product.image = base64Image;
+        // Check if image is already a base64 string
+        if (typeof backendProduct.image === 'string') {
+          product.image = backendProduct.image;
+          console.log(`✅ Obraz już w base64 dla produktu ${product.name}:`, {
+            base64Length: product.image.length,
+            base64Prefix: product.image.substring(0, 50)
+          });
+        }
+        // Otherwise convert byte array to base64
+        else if (Array.isArray(backendProduct.image) && backendProduct.image.length > 0) {
+          product.image = byteArrayToBase64(backendProduct.image);
+          console.log(`✅ Obraz przekonwertowany z byte array dla produktu ${product.name}:`, {
+            base64Length: product.image.length,
+            base64Prefix: product.image.substring(0, 50)
+          });
+        }
       } catch (error) {
-        console.warn('Błąd konwersji obrazu:', error);
+        console.error(`❌ Błąd konwersji obrazu dla produktu ${product.name}:`, error);
       }
+    } else {
+      console.log(`⚠️ Brak obrazu dla produktu ${product.name}`);
     }
-    
+
     return product;
   });
+
+  return products;
 }
 
 export function useProductsQuery(userId: string | null) {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['products', userId],
-    queryFn: () => fetchUserProducts(userId!),
+    queryFn: async () => {
+      const products = await fetchUserProducts(userId!);
+      console.log(`🔥 REACT QUERY RESULT:`, products.map(p => ({
+        name: p.name,
+        image: p.image,
+        hasImage: !!p.image,
+        imageLength: p.image?.length,
+        imagePrefix: p.image?.substring(0, 20)
+      })));
+      return products;
+    },
     enabled: userId !== null,
   });
+
+  // Log whenever data changes
+  if (query.data) {
+    console.log(`🎨 QUERY DATA IN HOOK:`, query.data.map(p => ({
+      name: p.name,
+      hasImage: !!p.image,
+      imageLength: p.image?.length
+    })));
+  }
+
+  return query;
 }
 
 function convertDPPtoBackendProduct(dpp: DigitalProductPassport, imageBase64?: string): Omit<BackendProduct, 'id'> {

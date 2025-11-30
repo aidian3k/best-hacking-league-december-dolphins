@@ -5,6 +5,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { ProductCard } from '@/components/wardrobe/ProductCard';
 import { CategoryFilter } from '@/components/wardrobe/CategoryFilter';
 import { WardrobeStatsMini } from '@/components/wardrobe/WardrobeStats';
+import { ImageDebug } from '@/components/debug/ImageDebug';
 import { useProductsQuery } from '@/api/products';
 import { useShareWardrobeMutation } from '@/api/wardrobeShare';
 import { useUser } from '@/contexts/UserContext';
@@ -19,6 +20,15 @@ export default function Wardrobe() {
   const { data: products, isLoading } = useProductsQuery(user?.id || null);
   const navigate = useNavigate();
   const shareWardrobeMutation = useShareWardrobeMutation();
+
+  // Debug: sprawdź co przychodzi do komponentu
+  console.log(`🏠 WARDROBE COMPONENT - Products:`, products?.map(p => ({
+    name: p.name,
+    hasImage: !!p.image,
+    hasImageUrl: !!p.imageUrl,
+    imageLength: p.image?.length,
+    imagePrefix: p.image?.substring(0, 20)
+  })));
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];

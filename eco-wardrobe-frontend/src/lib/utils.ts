@@ -18,13 +18,39 @@ export function fileToBase64(file: File): Promise<string> {
   });
 }
 
-export function base64ToDataUrl(base64: string, mimeType: string = 'image/jpeg'): string {
-  return `data:${mimeType};base64,${base64}`;
+export function base64ToDataUrl(base64: string, mimeType?: string): string {
+  // Remove any whitespace from base64 string
+  const cleanBase64 = base64.replace(/\s/g, '');
+
+  // Auto-detect image type from base64 signature
+  if (!mimeType) {
+    if (cleanBase64.startsWith('iVBOR')) {
+      mimeType = 'image/png';
+    } else if (cleanBase64.startsWith('R0lGOD')) {
+      mimeType = 'image/gif';
+    } else if (cleanBase64.startsWith('UklGR')) {
+      mimeType = 'image/webp';
+    } else if (cleanBase64.startsWith('/9j/')) {
+      mimeType = 'image/jpeg';
+    } else {
+      // Default to JPEG for unknown formats
+      mimeType = 'image/jpeg';
+    }
+  }
+
+  return `data:${mimeType};base64,${cleanBase64}`;
 }
 
 export function getProductImageUrl(product: { image?: string; imageUrl?: string }): string | undefined {
   if (product.image) {
-    return base64ToDataUrl(product.image);
+    try {
+      const dataUrl = base64ToDataUrl(product.image);
+      console.log(`🖼️ Creating image URL - Base64 prefix: ${product.image.substring(0, 20)}... → ${dataUrl.substring(0, 50)}...`);
+      return dataUrl;
+    } catch (error) {
+      console.warn('Błąd tworzenia URL obrazu:', error);
+      return product.imageUrl;
+    }
   }
   return product.imageUrl;
 }

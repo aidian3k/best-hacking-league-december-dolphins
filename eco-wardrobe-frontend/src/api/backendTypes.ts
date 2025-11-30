@@ -62,7 +62,7 @@ export interface BackendProduct {
     passportLastUpdated: string;
     dataOwner: string;
   };
-  image: number[] | null;
+  image: string | number[] | null; // Backend może zwrócić base64 string lub byte array
 }
 
 export interface BackendWardrobeItemsDTO {
