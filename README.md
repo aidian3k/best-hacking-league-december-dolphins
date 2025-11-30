@@ -180,3 +180,16 @@ Zaawansowany algorytm oceny ekologicznej uwzględniający:
 
 Projekt został stworzony w ramach **Best Hacking League December Dolphins** i stanowi kompleksowe rozwiązanie do zarządzania ekologiczną garderobą z wykorzystaniem technologii Digital Product Passport.
 
+## Zdjęcia
+<img width="360" height="742" alt="Zrzut ekranu z 2025-11-30 11-52-00" src="https://github.com/user-attachments/assets/2014f2fb-f538-449a-a09e-05e1f015f42c" />
+<img width="360" height="742" alt="Zrzut ekranu z 2025-11-30 11-52-18" src="https://github.com/user-attachments/assets/c2d28e84-1138-4ab4-a23d-ec6d51dd3de0" />
+<img width="360" height="742" alt="Zrzut ekranu z 2025-11-30 11-52-27" src="https://github.com/user-attachments/assets/20ccaca4-cf34-4a6a-a833-b77802c6a17a" />
+<img width="360" height="742" alt="Zrzut ekranu z 2025-11-30 11-52-37" src="https://github.com/user-attachments/assets/54ba7124-b5f1-4687-ba41-7ec862112f56" />
+<img width="360" height="742" alt="Zrzut ekranu z 2025-11-30 11-52-44" src="https://github.com/user-attachments/assets/5212e749-4935-4895-8c0d-c17b39526d7f" />
+<img width="360" height="742" alt="Zrzut ekranu z 2025-11-30 11-52-53" src="https://github.com/user-attachments/assets/177a184c-d09e-4436-a951-d14d0f332f1b" />
+<img width="360" height="742" alt="Zrzut ekranu z 2025-11-30 11-53-14" src="https://github.com/user-attachments/assets/f201aafd-446d-4590-9b07-2ab49f478c1a" />
+<img width="360" height="742" alt="Zrzut ekranu z 2025-11-30 11-53-54" src="https://github.com/user-attachments/assets/1217f172-1d8e-4437-b112-f5ed7546e00e" />
+<img width="360" height="742" alt="Zrzut ekranu z 2025-11-30 11-54-14" src="https://github.com/user-attachments/assets/f4c64730-a7c7-4cc3-97ca-d9b52a127b73" />
+<img width="360" height="742" alt="Zrzut ekranu z 2025-11-30 11-54-25" src="https://github.com/user-attachments/assets/548d0b9c-b0c1-418d-9e0c-38b0530c1757" />
+<img width="360" height="742" alt="Zrzut ekranu z 2025-11-30 11-54-30" src="https://github.com/user-attachments/assets/417889f5-685d-4c13-af83-0976a0e25144" />
+
