@@ -18,6 +18,75 @@ export function fileToBase64(file: File): Promise<string> {
   });
 }
 
+/**
+ * Compresses an image file to reduce size before upload
+ * @param file - The image file to compress
+ * @param maxWidth - Maximum width in pixels (default: 800)
+ * @param maxHeight - Maximum height in pixels (default: 800)
+ * @param quality - Image quality 0-1 (default: 0.8)
+ * @returns Promise with compressed base64 string (without data URL prefix)
+ */
+export function compressImage(
+  file: File,
+  maxWidth: number = 800,
+  maxHeight: number = 800,
+  quality: number = 0.8
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const img = new Image();
+
+      img.onload = () => {
+        // Calculate new dimensions while maintaining aspect ratio
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        // Create canvas and compress
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Failed to get canvas context'));
+          return;
+        }
+
+        // Draw and compress
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Convert to JPEG with quality compression
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        const base64String = compressedDataUrl.split(',')[1];
+
+        console.log(`📦 Kompresja obrazu: ${Math.round(file.size / 1024)}KB → ${Math.round((base64String.length * 3) / 4 / 1024)}KB`);
+
+        resolve(base64String);
+      };
+
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = e.target?.result as string;
+    };
+
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+}
+
 export function base64ToDataUrl(base64: string, mimeType?: string): string {
   // Remove any whitespace from base64 string
   const cleanBase64 = base64.replace(/\s/g, '');

@@ -192,7 +192,7 @@ export async function addProductToWardrobe(
   imageBase64?: string
 ): Promise<BackendProduct> {
   const backendProduct = convertDPPtoBackendProduct(dpp, imageBase64);
-  console.log("imageBase64 length:", imageBase64 ? imageBase64.length : 'no image');
+
   const response = await fetch(`${API_BASE_URL}/products/create/${userId}`, {
     method: 'POST',
     headers: {

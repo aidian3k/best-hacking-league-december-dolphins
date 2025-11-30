@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {useState} from 'react';
-import {base64ToDataUrl, cn, fileToBase64, getProductImageUrl} from '@/lib/utils';
+import {base64ToDataUrl, cn, compressImage, getProductImageUrl} from '@/lib/utils';
 
 interface ProductDetailsProps {
   product: Product;
@@ -60,9 +60,10 @@ export function ProductDetails({
     if (file) {
       setIsUploading(true);
       try {
-        const base64 = await fileToBase64(file);
-        const dataUrl = base64ToDataUrl(base64);
+        // Compress image before storing - max 600px, quality 0.7 to reduce payload size
+        const base64 = await compressImage(file, 600, 600, 0.7);
         setUploadedImage(base64);
+        console.log(`✅ Obraz skompresowany: ${Math.round((base64.length * 3) / 4 / 1024)}KB`);
       } catch (error) {
         console.error('Błąd przetwarzania obrazu:', error);
       } finally {
@@ -132,7 +133,7 @@ export function ProductDetails({
         {(uploadedImage || (productImageUrl && !productImageUrl.includes('placeholder'))) ? (
           <>
             <img
-              src={uploadedImage || productImageUrl}
+              src={uploadedImage ? base64ToDataUrl(uploadedImage) : productImageUrl}
               alt={product.name}
               className="w-full aspect-[4/3] object-cover"
             />
