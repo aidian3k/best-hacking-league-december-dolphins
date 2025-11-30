@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { X, Zap, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Html5Qrcode } from 'html5-qrcode';
 
 interface ScannerViewProps {
@@ -93,37 +92,7 @@ export function ScannerView({ onScan, onClose, isScanning }: ScannerViewProps) {
     }
   };
 
-  const handleManualScan = () => {
-    // Mock JSON payload do testowania
-    hasScannedRef.current = true;
-    const mockPayload = {
-      "productId": "123456789",
-      "gtin": "5901234123457",
-      "productName": "Eco Cotton T-Shirt",
-      "brand": "EcoFashion",
-      "category": "Clothing",
-      "description": "Sustainable cotton t-shirt made from 100% organic cotton",
-      "materials": [
-        {
-          "name": "Organic Cotton",
-          "percentage": 100,
-          "certifications": ["GOTS", "Oeko-Tex Standard 100"]
-        }
-      ],
-      "sustainability": {
-        "carbonFootprint": 2.5,
-        "waterUsage": 50,
-        "recyclability": 90,
-        "certifications": ["GOTS", "Fair Trade"]
-      },
-      "manufacturingInfo": {
-        "country": "Portugal",
-        "facility": "Green Factory Ltd.",
-        "dateManufactured": "2024-01-15"
-      }
-    };
-    onScan(JSON.stringify(mockPayload));
-  };
+
 
   return (
     <motion.div
@@ -153,14 +122,6 @@ export function ScannerView({ onScan, onClose, isScanning }: ScannerViewProps) {
               <p className="text-primary-foreground text-sm text-center mb-4 max-w-xs">
                 {error}
               </p>
-              <Button
-                onClick={handleManualScan}
-                disabled={isScanning}
-                size="lg"
-                className="w-full gradient-eco border-0"
-              >
-                Użyj testowego produktu
-              </Button>
             </div>
           )}
 
@@ -183,27 +144,13 @@ export function ScannerView({ onScan, onClose, isScanning }: ScannerViewProps) {
           {isScanning
             ? 'Analizowanie produktu...'
             : error
-              ? 'Lub użyj przycisku testowego poniżej'
+              ? 'Sprawdź ustawienia kamery i spróbuj ponownie'
               : cameraStarted
                 ? 'Skieruj kamerę na kod QR produktu'
                 : 'Uruchamianie kamery...'}
         </p>
       </div>
 
-      {/* Manual Scan Button for Testing */}
-      {!error && (
-        <div className="p-4 safe-bottom space-y-2">
-          <Button
-            onClick={handleManualScan}
-            disabled={isScanning}
-            size="lg"
-            variant="outline"
-            className="w-full h-14 text-lg font-display"
-          >
-            Użyj testowego produktu
-          </Button>
-        </div>
-      )}
     </motion.div>
   );
 }
