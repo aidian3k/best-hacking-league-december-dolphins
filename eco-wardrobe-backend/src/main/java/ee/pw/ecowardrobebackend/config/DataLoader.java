@@ -111,7 +111,7 @@ public class DataLoader implements CommandLineRunner {
         Product product2 = createProduct(
                 "2345678901234",
                 "Dżinsy z recyklingu",
-                "Dżinsy",
+                "Spodnie",
                 "GreenDenim",
                 "Slim Fit Eco",
                 80,
@@ -146,7 +146,7 @@ public class DataLoader implements CommandLineRunner {
         Product product4 = createProduct(
                 "4567890123456",
                 "Zestaw skarpetek bambusowych",
-                "Skarpetki",
+                "Skarpety",
                 "BambooComfort",
                 "Daily Essentials",
                 100,
@@ -164,7 +164,7 @@ public class DataLoader implements CommandLineRunner {
         Product product5 = createProduct(
                 "5678901234567",
                 "Sweter z wełny merino",
-                "Swetry",
+                "Bluzy",
                 "WoolCraft",
                 "Alpine Warmth",
                 100,
@@ -182,7 +182,7 @@ public class DataLoader implements CommandLineRunner {
         Product product6 = createProduct(
                 "6789012345678",
                 "Lniana sukienka designerska",
-                "Sukienki",
+                "Inne",
                 "LuxeLinen",
                 "Summer Breeze",
                 100,
@@ -199,7 +199,7 @@ public class DataLoader implements CommandLineRunner {
         Product product7 = createProduct(
                 "7890123456789",
                 "Ekologiczna kurtka skórzana",
-                "Kurtki",
+                "Inne",
                 "EcoLeather Co",
                 "Urban Classic",
                 100,
@@ -216,7 +216,7 @@ public class DataLoader implements CommandLineRunner {
         Product product8 = createProduct(
                 "8901234567890",
                 "Bluzka z organicznego jedwabiu",
-                "Bluzki",
+                "Koszulki",
                 "SilkNature",
                 "Elegant Flow",
                 100,
@@ -234,7 +234,7 @@ public class DataLoader implements CommandLineRunner {
         Product product9 = createProduct(
                 "9012345678901",
                 "Kurtka z recyklingowanego poliestru",
-                "Kurtki",
+                "Inne",
                 "ReWear Tech",
                 "Urban Shield",
                 100,
@@ -268,7 +268,7 @@ public class DataLoader implements CommandLineRunner {
         Product product11 = createProduct(
                 "1234567890124",
                 "Ekologiczne sneakersy",
-                "Buty",
+                "Inne",
                 "GreenSteps",
                 "Urban Walk",
                 60,
@@ -321,13 +321,13 @@ public class DataLoader implements CommandLineRunner {
         // Material Compositions
         List<MaterialComposition> materials = new ArrayList<>();
         materials.add(MaterialComposition.builder()
-                .materialName(getMaterialName(category, true))
+                .materialName(getMaterialName(productName, true))
                 .compositionPercentage(mainMaterialPercentage)
                 .certifications(Arrays.asList("GOTS", "OEKO-TEX"))
                 .build());
         if (secondaryMaterialPercentage > 0) {
             materials.add(MaterialComposition.builder()
-                    .materialName(getMaterialName(category, false))
+                    .materialName(getMaterialName(productName, false))
                     .compositionPercentage(secondaryMaterialPercentage)
                     .certifications(Arrays.asList("OEKO-TEX"))
                     .build());
@@ -398,20 +398,35 @@ public class DataLoader implements CommandLineRunner {
                 .build();
     }
 
-    private String getMaterialName(String category, boolean isPrimary) {
+    private String getMaterialName(String productName, boolean isPrimary) {
         if (isPrimary) {
-            return switch (category) {
-                case "Koszulki", "Bluzki" -> "Organic Cotton";
-                case "Dżinsy" -> "Recycled Denim";
-                case "Bluzy" -> "Hemp";
-                case "Skarpetki" -> "Bamboo Fiber";
-                case "Swetry" -> "Merino Wool";
-                case "Sukienki" -> "Organic Linen";
-                case "Kurtki" -> category.contains("Leather") ? "Sustainable Leather" : "Recycled Polyester";
-                case "Spodnie" -> "Tencel Lyocell";
-                case "Buty" -> "Recycled Rubber";
-                default -> "Organic Cotton";
-            };
+            String lowerName = productName.toLowerCase();
+
+            if (lowerName.contains("bawełny") || lowerName.contains("cotton")) {
+                return "Organic Cotton";
+            } else if (lowerName.contains("dżinsy") || lowerName.contains("denim")) {
+                return "Recycled Denim";
+            } else if (lowerName.contains("konopi") || lowerName.contains("hemp")) {
+                return "Hemp";
+            } else if (lowerName.contains("bambusowych") || lowerName.contains("bamboo")) {
+                return "Bamboo Fiber";
+            } else if (lowerName.contains("wełny") || lowerName.contains("wool") || lowerName.contains("merino")) {
+                return "Merino Wool";
+            } else if (lowerName.contains("lniana") || lowerName.contains("linen")) {
+                return "Organic Linen";
+            } else if (lowerName.contains("skórzana") || lowerName.contains("leather")) {
+                return "Sustainable Leather";
+            } else if (lowerName.contains("jedwabiu") || lowerName.contains("silk")) {
+                return "Organic Silk";
+            } else if (lowerName.contains("poliestru") || lowerName.contains("polyester")) {
+                return "Recycled Polyester";
+            } else if (lowerName.contains("tencelu") || lowerName.contains("tencel")) {
+                return "Tencel Lyocell";
+            } else if (lowerName.contains("sneakersy") || lowerName.contains("buty") || lowerName.contains("shoes")) {
+                return "Recycled Rubber";
+            } else {
+                return "Organic Cotton"; // domyślny materiał
+            }
         } else {
             return "Elastane";
         }
