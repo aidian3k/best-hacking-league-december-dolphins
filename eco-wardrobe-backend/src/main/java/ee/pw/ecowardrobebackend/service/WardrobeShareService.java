@@ -30,7 +30,14 @@ public class WardrobeShareService {
                 .map(savedUserWardrobe -> {
                     final User userWardrobeOwner = savedUserWardrobe.getUserWardrobeOwner();
                     return new SavedWardrobeResponseDTO.SavedWardrobeItemDTO(
-                            UserDTO.builder().id(userWardrobeOwner.getId()).name(userWardrobeOwner.getName()).build(),
+                        UserDTO
+                        .builder()
+                        .id(userWardrobeOwner.getId())
+                        .name(userWardrobeOwner.getName())
+                        .profilePicture(userWardrobeOwner.getProfilePicture())
+                        .isInfluencer(userWardrobeOwner.isInfluencer())
+                        .preference(userWardrobeOwner.getPreference())
+                        .build(),
                             userWardrobeOwner.getProducts()
                     );
                 }).collect(Collectors.toSet());
@@ -75,7 +82,14 @@ public class WardrobeShareService {
         final Set<SavedWardrobeResponseDTO.SavedWardrobeItemDTO> savedWardrobeItemDTOS = userService.getInfluencers()
                 .stream()
                 .map(influencer -> new SavedWardrobeResponseDTO.SavedWardrobeItemDTO(
-                        UserDTO.builder().id(influencer.getId()).name(influencer.getName()).profilePicture(influencer.getProfilePicture()).isInfluencer(influencer.isInfluencer()).build(),
+                        UserDTO
+                            .builder()
+                            .id(influencer.getId())
+                            .name(influencer.getName())
+                            .profilePicture(influencer.getProfilePicture())
+                            .isInfluencer(influencer.isInfluencer())
+                            .preference(influencer.getPreference())
+                            .build(),
                         influencer.getProducts()
                 )).collect(Collectors.toSet());
 

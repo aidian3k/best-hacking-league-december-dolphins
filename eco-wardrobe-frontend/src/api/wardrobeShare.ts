@@ -17,6 +17,8 @@ export interface SavedWardrobeItem {
     id: string;
     email: string;
     name: string;
+    profilePicture?: string | null;
+    isInfluencer?: boolean;
   };
   products: Product[];
 }
@@ -59,11 +61,24 @@ async function fetchSavedWardrobes(userId: string): Promise<SavedWardrobeItem[]>
       return product;
     });
 
+    let profilePictureBase64: string | null = null;
+    if (item.user.profilePicture && Array.isArray(item.user.profilePicture) && item.user.profilePicture.length > 0) {
+      try {
+        const bytes = new Uint8Array(item.user.profilePicture);
+        const binary = String.fromCharCode(...bytes);
+        profilePictureBase64 = `data:image/jpeg;base64,${btoa(binary)}`;
+      } catch (error) {
+        console.warn('Błąd konwersji zdjęcia profilowego:', error);
+      }
+    }
+
     return {
       user: {
         id: item.user.id,
-        email: item.user.email,
+        email: item.user.email || '',
         name: item.user.name,
+        profilePicture: profilePictureBase64,
+        isInfluencer: item.user.isInfluencer || false,
       },
       products,
     };
@@ -92,6 +107,68 @@ async function copyToClipboard(text: string): Promise<void> {
   } catch (error) {
     throw new Error('Nie udało się skopiować do schowka');
   }
+}
+
+async function fetchInfluencerWardrobes(): Promise<SavedWardrobeItem[]> {
+  const response = await fetch(`${API_BASE_URL}/wardrobe-share/get-shared-influencers-wardrobes`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Błąd pobierania szaf influencerów');
+  }
+
+  const data: BackendSavedWardrobeResponseDTO = await response.json();
+
+  if (!data.savedWardrobeItems || data.savedWardrobeItems.length === 0) {
+    return [];
+  }
+
+  return data.savedWardrobeItems.map((item: BackendSavedWardrobeItemDTO) => {
+    const products = item.products.map(backendProduct => {
+      const dpp = convertBackendProductToDPP(backendProduct);
+      const converted = convertDPPtoProduct(dpp);
+      const product = converted.product;
+
+      if (backendProduct.image && Array.isArray(backendProduct.image) && backendProduct.image.length > 0) {
+        try {
+          const bytes = new Uint8Array(backendProduct.image);
+          const binary = String.fromCharCode(...bytes);
+          const base64Image = btoa(binary);
+          product.image = base64Image;
+        } catch (error) {
+          console.warn('Błąd konwersji obrazu:', error);
+        }
+      }
+
+      return product;
+    });
+
+    let profilePictureBase64: string | null = null;
+    if (item.user.profilePicture && Array.isArray(item.user.profilePicture) && item.user.profilePicture.length > 0) {
+      try {
+        const bytes = new Uint8Array(item.user.profilePicture);
+        const binary = String.fromCharCode(...bytes);
+        profilePictureBase64 = `data:image/jpeg;base64,${btoa(binary)}`;
+      } catch (error) {
+        console.warn('Błąd konwersji zdjęcia profilowego:', error);
+      }
+    }
+
+    return {
+      user: {
+        id: item.user.id,
+        email: item.user.email || '',
+        name: item.user.name,
+        profilePicture: profilePictureBase64,
+        isInfluencer: item.user.isInfluencer || false,
+      },
+      products,
+    };
+  });
 }
 
 async function addWardrobe(userId: string, shareCode: string): Promise<void> {
@@ -169,6 +246,13 @@ export function useAddWardrobeMutation() {
         variant: 'destructive',
       });
     },
+  });
+}
+
+export function useInfluencerWardrobesQuery() {
+  return useQuery({
+    queryKey: ['influencerWardrobes'],
+    queryFn: () => fetchInfluencerWardrobes(),
   });
 }
 

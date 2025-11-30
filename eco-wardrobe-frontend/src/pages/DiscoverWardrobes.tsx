@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { EcoScore } from '@/components/ui/EcoScore';
-import { useSavedWardrobesQuery, useAddWardrobeMutation } from '@/api/wardrobeShare';
+import { useSavedWardrobesQuery, useAddWardrobeMutation, useInfluencerWardrobesQuery } from '@/api/wardrobeShare';
 import { calculateWardrobeStats } from '@/services/wardrobeStats';
-import { Users, Shirt } from 'lucide-react';
+import { Users, Shirt, BadgeCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -16,6 +16,7 @@ export default function DiscoverWardrobes() {
   const { toast } = useToast();
   const [shareCode, setShareCode] = useState('');
   const { data: savedWardrobes, isLoading: isLoadingSaved } = useSavedWardrobesQuery();
+  const { data: influencerWardrobes, isLoading: isLoadingInfluencers } = useInfluencerWardrobesQuery();
   const addWardrobeMutation = useAddWardrobeMutation();
 
   const handleAddWardrobe = () => {
@@ -38,12 +39,20 @@ export default function DiscoverWardrobes() {
     }
   };
 
+  const formatFollowers = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
+    return num.toString();
+  };
+
   const renderWardrobeCard = (
     id: string,
     name: string,
     itemCount: number,
     wardrobeEcoScore: number,
-    index: number
+    index: number,
+    profilePicture?: string | null,
+    isInfluencer?: boolean
   ) => (
     <motion.div
       key={id}
@@ -58,9 +67,22 @@ export default function DiscoverWardrobes() {
     >
       <div className="flex items-center gap-4">
         <div className="relative">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-            <Users className="w-8 h-8 text-primary" />
-          </div>
+          {profilePicture ? (
+            <img
+              src={profilePicture}
+              alt={name}
+              className="w-16 h-16 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+              <Users className="w-8 h-8 text-primary" />
+            </div>
+          )}
+          {isInfluencer && (
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-accent rounded-full flex items-center justify-center">
+              <BadgeCheck className="w-4 h-4 text-accent-foreground" />
+            </div>
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold truncate">{name}</h3>
@@ -123,7 +145,9 @@ export default function DiscoverWardrobes() {
                   wardrobe.user.name,
                   wardrobe.products.length,
                   stats.avgEcoScore,
-                  index
+                  index,
+                  wardrobe.user.profilePicture,
+                  wardrobe.user.isInfluencer
                 );
               })}
             </div>
@@ -133,6 +157,42 @@ export default function DiscoverWardrobes() {
             </div>
           )}
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-primary to-accent rounded-2xl p-5 mb-6 text-primary-foreground mt-8"
+        >
+          <h2 className="font-display font-semibold text-lg mb-1">🌿 Eko Liderzy</h2>
+          <p className="text-primary-foreground/80 text-sm">
+            Poznaj osoby, które dbają o środowisko poprzez świadome wybory modowe
+          </p>
+        </motion.div>
+
+        {isLoadingInfluencers ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground text-sm">Ładowanie szaf influencerów...</p>
+          </div>
+        ) : influencerWardrobes && influencerWardrobes.length > 0 ? (
+          <div className="space-y-3">
+            {influencerWardrobes.map((wardrobe, index) => {
+              const stats = calculateWardrobeStats(wardrobe.products);
+              return renderWardrobeCard(
+                wardrobe.user.id,
+                wardrobe.user.name,
+                wardrobe.products.length,
+                stats.avgEcoScore,
+                index,
+                wardrobe.user.profilePicture,
+                wardrobe.user.isInfluencer
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-8 bg-muted rounded-xl">
+            <p className="text-muted-foreground text-sm">Brak dostępnych szaf influencerów</p>
+          </div>
+        )}
       </div>
     </AppLayout>
   );

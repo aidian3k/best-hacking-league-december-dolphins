@@ -69,10 +69,18 @@ export interface BackendWardrobeItemsDTO {
   products: BackendProduct[];
 }
 
+export interface BackendPreference {
+  allergies?: Array<{ name: string }>;
+  preferredMaterials?: Array<{ material: string }>;
+}
+
 export interface BackendUserDTO {
   id: string;
   email: string;
   name: string;
+  profilePicture?: number[] | null;
+  isInfluencer?: boolean;
+  preference?: BackendPreference | null;
 }
 
 export interface BackendSavedWardrobeItemDTO {

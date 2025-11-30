@@ -21,15 +21,6 @@ export default function Wardrobe() {
   const navigate = useNavigate();
   const shareWardrobeMutation = useShareWardrobeMutation();
 
-  // Debug: sprawdź co przychodzi do komponentu
-  console.log(`🏠 WARDROBE COMPONENT - Products:`, products?.map(p => ({
-    name: p.name,
-    hasImage: !!p.image,
-    hasImageUrl: !!p.imageUrl,
-    imageLength: p.image?.length,
-    imagePrefix: p.image?.substring(0, 20)
-  })));
-
   const filteredProducts = useMemo(() => {
     if (!products) return [];
     if (selectedCategory === 'all') return products;
