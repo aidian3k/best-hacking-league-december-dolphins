@@ -10,8 +10,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Set;
 
@@ -23,6 +25,7 @@ public class DataLoader implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional
     public void run(String... args) {
         if (userRepository.count() == 0) {
             loadTestData();
@@ -33,7 +36,7 @@ public class DataLoader implements CommandLineRunner {
         // Tworzenie użytkowników regularnych
         User user1 = User.builder()
                 .name("Jan Kowalski")
-                .email("jan.kowalski@example.com")
+                .email("jan.kowalski@wp.pl")
                 .password(passwordEncoder.encode("password123"))
                 .isInfluencer(false)
                 .products(new HashSet<>())
@@ -41,7 +44,7 @@ public class DataLoader implements CommandLineRunner {
 
         User user2 = User.builder()
                 .name("Anna Nowak")
-                .email("anna.nowak@example.com")
+                .email("anna.nowak@wp.pl")
                 .password(passwordEncoder.encode("password123"))
                 .isInfluencer(false)
                 .products(new HashSet<>())
@@ -49,7 +52,7 @@ public class DataLoader implements CommandLineRunner {
 
         User user3 = User.builder()
                 .name("Piotr Wiśniewski")
-                .email("piotr.wisniewski@example.com")
+                .email("piotr.wisniewski@wp.pl")
                 .password(passwordEncoder.encode("password123"))
                 .isInfluencer(false)
                 .products(new HashSet<>())
@@ -58,7 +61,7 @@ public class DataLoader implements CommandLineRunner {
         // Tworzenie influencerów
         User influencer1 = User.builder()
                 .name("Marta Stylowa")
-                .email("marta.stylowa@example.com")
+                .email("marta.stylowa@wp.pl")
                 .password(passwordEncoder.encode("influencer123"))
                 .isInfluencer(true)
                 .products(new HashSet<>())
@@ -66,7 +69,7 @@ public class DataLoader implements CommandLineRunner {
 
         User influencer2 = User.builder()
                 .name("Karol Modny")
-                .email("karol.modny@example.com")
+                .email("karol.modny@wp.pl")
                 .password(passwordEncoder.encode("influencer123"))
                 .isInfluencer(true)
                 .products(new HashSet<>())
@@ -296,19 +299,19 @@ public class DataLoader implements CommandLineRunner {
         );
 
         // Material Compositions
-        List<MaterialComposition> materials = Arrays.asList(
-                MaterialComposition.builder()
-                        .materialName(getMaterialName(category, true))
-                        .compositionPercentage(mainMaterialPercentage)
-                        .certifications(Arrays.asList("GOTS", "OEKO-TEX"))
-                        .build(),
-                secondaryMaterialPercentage > 0 ? MaterialComposition.builder()
-                        .materialName(getMaterialName(category, false))
-                        .compositionPercentage(secondaryMaterialPercentage)
-                        .certifications(Arrays.asList("OEKO-TEX"))
-                        .build() : null
-        );
-        materials.removeIf(m -> m == null);
+        List<MaterialComposition> materials = new ArrayList<>();
+        materials.add(MaterialComposition.builder()
+                .materialName(getMaterialName(category, true))
+                .compositionPercentage(mainMaterialPercentage)
+                .certifications(Arrays.asList("GOTS", "OEKO-TEX"))
+                .build());
+        if (secondaryMaterialPercentage > 0) {
+            materials.add(MaterialComposition.builder()
+                    .materialName(getMaterialName(category, false))
+                    .compositionPercentage(secondaryMaterialPercentage)
+                    .certifications(Arrays.asList("OEKO-TEX"))
+                    .build());
+        }
 
         // Environment Impact
         ProductEnvironmentImpact environmentImpact = new ProductEnvironmentImpact(

@@ -70,4 +70,14 @@ public class WardrobeShareService {
 
         return true;
     }
+
+    public WardrobeShareResponseDTO getSharedInfluencerWardrobes() {
+        return userService.getInfluencers()
+        .stream()
+        .map(user -> new WardrobeShareResponseDTO(
+                user.getId(),
+                user.getName()
+        ))
+        .collect(Collectors.toList());
+    }
 }
