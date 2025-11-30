@@ -1,13 +1,15 @@
 import { WardrobeStats as WardrobeStatsType } from '@/types/product';
 import { EcoScore, EcoScoreBar } from '@/components/ui/EcoScore';
 import { motion } from 'framer-motion';
-import { Leaf, Recycle, Wrench, Clock } from 'lucide-react';
+import { Leaf, Recycle, Wrench } from 'lucide-react';
 
 interface WardrobeStatsProps {
   stats: WardrobeStatsType;
 }
 
 export function WardrobeStatsCard({ stats }: WardrobeStatsProps) {
+  const isEmpty = stats.totalItems === 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -19,7 +21,7 @@ export function WardrobeStatsCard({ stats }: WardrobeStatsProps) {
           <h3 className="font-display font-semibold text-lg">Ekologiczność szafy</h3>
           <p className="text-sm text-muted-foreground">{stats.totalItems} produktów</p>
         </div>
-        <EcoScore score={stats.avgEcoScore} size="lg" showLabel />
+        <EcoScore score={stats.avgEcoScore} size="lg" showLabel isEmpty={isEmpty} />
       </div>
 
       <div className="space-y-4">
@@ -29,7 +31,7 @@ export function WardrobeStatsCard({ stats }: WardrobeStatsProps) {
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium">Produkty ekologiczne</p>
-            <EcoScoreBar score={stats.ecoProductsPercent} />
+            <EcoScoreBar score={stats.ecoProductsPercent} isEmpty={isEmpty} />
           </div>
         </div>
 
@@ -39,7 +41,7 @@ export function WardrobeStatsCard({ stats }: WardrobeStatsProps) {
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium">Do recyklingu</p>
-            <EcoScoreBar score={stats.recyclablePercent} />
+            <EcoScoreBar score={stats.recyclablePercent} isEmpty={isEmpty} />
           </div>
         </div>
 
@@ -49,18 +51,22 @@ export function WardrobeStatsCard({ stats }: WardrobeStatsProps) {
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium">Nadające się do naprawy</p>
-            <EcoScoreBar score={stats.repairablePercent} />
+            <EcoScoreBar score={stats.repairablePercent} isEmpty={isEmpty} />
           </div>
         </div>
       </div>
 
       <div className="mt-4 pt-4 border-t border-border grid grid-cols-2 gap-4">
         <div className="text-center">
-          <p className="text-2xl font-display font-bold text-primary">{stats.naturalMaterialsPercent}%</p>
+          <p className="text-2xl font-display font-bold text-primary">
+            {isEmpty ? 'N/A' : `${stats.naturalMaterialsPercent}%`}
+          </p>
           <p className="text-xs text-muted-foreground">Materiały naturalne</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl font-display font-bold text-muted-foreground">{stats.syntheticMaterialsPercent}%</p>
+          <p className="text-2xl font-display font-bold text-muted-foreground">
+            {isEmpty ? 'N/A' : `${stats.syntheticMaterialsPercent}%`}
+          </p>
           <p className="text-xs text-muted-foreground">Materiały syntetyczne</p>
         </div>
       </div>
@@ -71,7 +77,7 @@ export function WardrobeStatsCard({ stats }: WardrobeStatsProps) {
 export function WardrobeStatsMini({ stats }: WardrobeStatsProps) {
   return (
     <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl">
-      <EcoScore score={stats.avgEcoScore} size="md" />
+      <EcoScore score={stats.avgEcoScore} size="md" isEmpty={stats.totalItems === 0} />
       <div>
         <p className="font-display font-semibold">Twoja szafa</p>
         <p className="text-sm text-muted-foreground">
