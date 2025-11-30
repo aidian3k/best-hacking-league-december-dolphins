@@ -4,8 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { mockUserProfile, mockBadges } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { 
+import {
   User, 
   AlertCircle, 
   Heart, 
@@ -18,37 +17,104 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '@/contexts/UserContext';
+import { useModifyPreferencesMutation } from '@/api/user';
 
 export default function Settings() {
+  const { user } = useUser();
   const [allergies, setAllergies] = useState<string[]>(mockUserProfile.allergies);
   const [preferences, setPreferences] = useState<string[]>(mockUserProfile.preferences);
   const [newAllergy, setNewAllergy] = useState('');
   const [newPreference, setNewPreference] = useState('');
   const { toast } = useToast();
   const navigate = useNavigate();
+  const modifyPreferencesMutation = useModifyPreferencesMutation();
 
-  const addAllergy = () => {
+  // Helper function to update preferences on backend
+  const updatePreferencesOnBackend = async (updatedAllergies: string[], updatedPreferences: string[]) => {
+    if (!user?.id) {
+      toast({
+        title: 'Błąd',
+        description: 'Musisz być zalogowany',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      await modifyPreferencesMutation.mutateAsync({
+        userId: user.id,
+        preferences: {
+          allergies: updatedAllergies,
+          preferredMaterials: updatedPreferences,
+        },
+      });
+    } catch (error) {
+      toast({
+        title: 'Błąd',
+        description: 'Nie udało się zaktualizować preferencji',
+        variant: 'destructive'
+      });
+      throw error;
+    }
+  };
+
+  const addAllergy = async () => {
     if (newAllergy.trim()) {
-      setAllergies([...allergies, newAllergy.trim()]);
+      const updatedAllergies = [...allergies, newAllergy.trim()];
+      setAllergies(updatedAllergies);
       setNewAllergy('');
-      toast({ title: 'Dodano alergię' });
+
+      try {
+        await updatePreferencesOnBackend(updatedAllergies, preferences);
+        toast({ title: 'Dodano alergię' });
+      } catch (error) {
+        // Rollback on error
+        setAllergies(allergies);
+      }
     }
   };
 
-  const removeAllergy = (index: number) => {
-    setAllergies(allergies.filter((_, i) => i !== index));
+  const removeAllergy = async (index: number) => {
+    const updatedAllergies = allergies.filter((_, i) => i !== index);
+    setAllergies(updatedAllergies);
+
+    try {
+      await updatePreferencesOnBackend(updatedAllergies, preferences);
+      toast({ title: 'Usunięto alergię' });
+    } catch (error) {
+      // Rollback on error
+      setAllergies(allergies);
+    }
   };
 
-  const addPreference = () => {
+  const addPreference = async () => {
     if (newPreference.trim()) {
-      setPreferences([...preferences, newPreference.trim()]);
+      const updatedPreferences = [...preferences, newPreference.trim()];
+      setPreferences(updatedPreferences);
       setNewPreference('');
-      toast({ title: 'Dodano preferencję' });
+
+      try {
+        await updatePreferencesOnBackend(allergies, updatedPreferences);
+        toast({ title: 'Dodano preferencję' });
+      } catch (error) {
+        // Rollback on error
+        setPreferences(preferences);
+      }
     }
   };
 
-  const removePreference = (index: number) => {
-    setPreferences(preferences.filter((_, i) => i !== index));
+  const removePreference = async (index: number) => {
+    const updatedPreferences = preferences.filter((_, i) => i !== index);
+    setPreferences(updatedPreferences);
+
+    try {
+      await updatePreferencesOnBackend(allergies, updatedPreferences);
+      toast({ title: 'Usunięto preferencję' });
+    } catch (error) {
+      // Rollback on error
+      setPreferences(preferences);
+    }
   };
 
   const handleLogout = () => {
