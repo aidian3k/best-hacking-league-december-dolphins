@@ -199,53 +199,6 @@ export default function Analytics() {
           </div>
         </motion.div>
 
-        {/* Category Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="bg-card rounded-xl p-4 border border-border mb-6"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="w-5 h-5 text-primary" />
-            <h3 className="font-display font-semibold">Ekologiczność kategorii</h3>
-          </div>
-          <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={categoryData} layout="vertical">
-                <XAxis type="number" domain={[0, 100]} hide />
-                <YAxis 
-                  type="category" 
-                  dataKey="name" 
-                  width={80}
-                  tick={{ fontSize: 12 }}
-                />
-                <Tooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const data = payload[0].payload;
-                      return (
-                        <div className="bg-card border border-border rounded-lg p-2 shadow-lg">
-                          <p className="font-semibold">{data.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Wynik: {data.ecoScore} | {data.count} szt.
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Bar 
-                  dataKey="ecoScore" 
-                  fill="hsl(155 45% 25%)" 
-                  radius={[0, 4, 4, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
-
         {/* Category Breakdown */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -253,7 +206,7 @@ export default function Analytics() {
           transition={{ delay: 0.4 }}
           className="bg-card rounded-xl p-4 border border-border"
         >
-          <h3 className="font-display font-semibold mb-4">Szczegóły kategorii</h3>
+          <h3 className="font-display font-semibold mb-4">Ekologiczność kategorii</h3>
           <div className="space-y-4">
             {categoryData.map((cat) => (
               <div key={cat.name}>
