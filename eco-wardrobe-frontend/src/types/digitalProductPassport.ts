@@ -134,39 +134,12 @@ export function convertBackendProductToDPP(backendProduct: any): DigitalProductP
   };
 }
 
+import { calculateProductEcoScore } from '@/services/ecoScore';
+
 export function convertDPPtoProduct(dpp: DigitalProductPassport | { productPassport: DigitalProductPassport }): any {
-  const passport = 'productPassport' in dpp ? dpp.productPassport : dpp;  let ecoScore = 100;
-
-  if (passport.environmentalImpact.carbonFootprint_kgCO2e > 5) {
-    ecoScore -= Math.min(30, (passport.environmentalImpact.carbonFootprint_kgCO2e - 5) * 5);
-  }
-
-  if (passport.environmentalImpact.recycledContentPercentage > 50) {
-    ecoScore += 10;
-  } else if (passport.environmentalImpact.recycledContentPercentage === 0) {
-    ecoScore -= 15;
-  }
-
-  if (passport.environmentalImpact.hazardousSubstances.length > 0) {
-    ecoScore -= 20;
-  }
-
-  if (passport.endOfLife.recyclabilityPercentage < 50) {
-    ecoScore -= 20;
-  }
-
-  if (passport.durabilityAndCare.repairability.repairDifficulty === 'high') {
-    ecoScore -= 10;
-  } else if (passport.durabilityAndCare.repairability.repairDifficulty === 'low') {
-    ecoScore += 5;
-  }
-
-  const hasCertifications = passport.materialComposition.some(m => m.certifications.length > 0);
-  if (hasCertifications) {
-    ecoScore += 10;
-  }
-
-  ecoScore = Math.max(0, Math.min(100, ecoScore));
+  const passport = 'productPassport' in dpp ? dpp.productPassport : dpp;
+  
+  const ecoScore = calculateProductEcoScore(passport);
 
   const materials = passport.materialComposition.map(m => ({
     name: m.material,
