@@ -9,6 +9,7 @@ interface EcoScoreProps {
   showLabel?: boolean;
   animated?: boolean;
   className?: string;
+  isEmpty?: boolean;
 }
 
 const sizeClasses = {
@@ -39,10 +40,11 @@ export function EcoScore({
   size = 'md', 
   showLabel = false,
   animated = true,
-  className 
+  className,
+  isEmpty = false
 }: EcoScoreProps) {
   const displayRating = rating || getRatingFromScore(score);
-  const colorClass = getScoreColor(score);
+  const colorClass = isEmpty ? 'text-muted-foreground border-border bg-muted/30' : getScoreColor(score);
 
   const content = (
     <div
@@ -53,7 +55,7 @@ export function EcoScore({
         className
       )}
     >
-      {score}%
+      {isEmpty ? 'N/A' : `${score}%`}
     </div>
   );
 
@@ -71,8 +73,8 @@ export function EcoScore({
         content
       )}
       {showLabel && (
-        <span className={cn('text-xs font-medium', colorClass.split(' ')[0])}>
-          {ecoRatingLabels[displayRating]}
+        <span className={cn('text-xs font-medium', isEmpty ? 'text-muted-foreground' : colorClass.split(' ')[0])}>
+          {isEmpty ? 'Brak danych' : ecoRatingLabels[displayRating]}
         </span>
       )}
     </div>
@@ -83,9 +85,10 @@ interface EcoScoreBarProps {
   score: number;
   showValue?: boolean;
   className?: string;
+  isEmpty?: boolean;
 }
 
-export function EcoScoreBar({ score, showValue = true, className }: EcoScoreBarProps) {
+export function EcoScoreBar({ score, showValue = true, className, isEmpty = false }: EcoScoreBarProps) {
   const getBarColor = (score: number): string => {
     if (score >= 80) return 'bg-eco-excellent';
     if (score >= 60) return 'bg-eco-good';
@@ -97,15 +100,22 @@ export function EcoScoreBar({ score, showValue = true, className }: EcoScoreBarP
   return (
     <div className={cn('flex items-center gap-3', className)}>
       <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-        <motion.div
-          className={cn('h-full rounded-full', getBarColor(score))}
-          initial={{ width: 0 }}
-          animate={{ width: `${score}%` }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        />
+        {!isEmpty && (
+          <motion.div
+            className={cn('h-full rounded-full', getBarColor(score))}
+            initial={{ width: 0 }}
+            animate={{ width: `${score}%` }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+          />
+        )}
       </div>
       {showValue && (
-        <span className="text-sm font-semibold font-display min-w-[2.5rem]">{score}</span>
+        <span className={cn(
+          'text-sm font-semibold font-display min-w-[2.5rem]',
+          isEmpty && 'text-muted-foreground'
+        )}>
+          {isEmpty ? 'N/A' : score}
+        </span>
       )}
     </div>
   );

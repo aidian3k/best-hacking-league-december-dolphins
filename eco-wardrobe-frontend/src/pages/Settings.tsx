@@ -4,7 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { AvatarUpload } from '@/components/ui/AvatarUpload';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
+import {
   LogOut, 
   ChevronRight,
   Leaf,
@@ -16,8 +16,9 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
-import { useUploadUserPhotoMutation } from '@/api/user';
+import { useUploadUserPhotoMutation, useModifyPreferencesMutation } from '@/api/user';
 import { getUserAvatarUrl, base64ToDataUrl } from '@/lib/utils';
+import { User } from '@/types/user';
 
 export default function Settings() {
   const { user, setUser } = useUser();
@@ -28,8 +29,8 @@ export default function Settings() {
   const navigate = useNavigate();
   const uploadPhotoMutation = useUploadUserPhotoMutation();
 
-  const allergies = user?.preferences?.allergies || [];
-  const preferences = user?.preferences?.preferredMaterials || [];
+  const allergies = useMemo(() => user?.preferences?.allergies || [], [user]);
+  const preferences = useMemo(() => user?.preferences?.preferredMaterials || [], [user]);
 
   const userAvatarUrl = useMemo(() => {
     if (!user) return undefined;
@@ -81,58 +82,175 @@ export default function Settings() {
     }
   };
 
-  const addAllergy = () => {
-    if (newAllergy.trim() && user) {
-      const updatedAllergies = [...allergies, newAllergy.trim()];
-      setUser({
-        ...user,
-        preferences: {
-          ...user.preferences,
-          allergies: updatedAllergies
-        }
+  const modifyPreferencesMutation = useModifyPreferencesMutation();
+
+  const updatePreferencesOnBackend = async (currentUser: User, updatedAllergies: string[], updatedPreferences: string[]) => {
+    if (!currentUser?.id) {
+      toast({
+        title: 'Błąd',
+        description: 'Musisz być zalogowany',
+        variant: 'destructive'
       });
-      setNewAllergy('');
+      throw new Error('User not logged in');
+    }
+
+    const response = await modifyPreferencesMutation.mutateAsync({
+      userId: currentUser.id,
+      preferences: {
+        allergies: updatedAllergies,
+        preferredMaterials: updatedPreferences,
+      },
+    });
+
+    const updatedPreferencesData = {
+      allergies: response.preference?.allergies?.map(a => a.name) || [],
+      preferredMaterials: response.preference?.preferredMaterials?.map(pm => pm.material) || [],
+    };
+
+    setUser({
+      ...currentUser,
+      preferences: updatedPreferencesData
+    });
+  };
+
+  const addAllergy = async () => {
+    if (!newAllergy.trim() || !user) return;
+
+    const allergyToAdd = newAllergy.trim();
+    const currentAllergies = user.preferences?.allergies || [];
+    const currentPreferences = user.preferences?.preferredMaterials || [];
+    const updatedAllergies = [...currentAllergies, allergyToAdd];
+    
+    const updatedUser = {
+      ...user,
+      preferences: {
+        ...user.preferences,
+        allergies: updatedAllergies
+      }
+    };
+
+    setNewAllergy('');
+
+    try {
+      await updatePreferencesOnBackend(updatedUser, updatedAllergies, currentPreferences);
       toast({ title: 'Dodano alergię' });
-    }
-  };
-
-  const removeAllergy = (index: number) => {
-    if (user) {
-      const updatedAllergies = allergies.filter((_, i) => i !== index);
+    } catch (error) {
       setUser({
         ...user,
         preferences: {
           ...user.preferences,
-          allergies: updatedAllergies
+          allergies: currentAllergies
         }
+      });
+      toast({
+        title: 'Błąd',
+        description: 'Nie udało się dodać alergii',
+        variant: 'destructive'
       });
     }
   };
 
-  const addPreference = () => {
-    if (newPreference.trim() && user) {
-      const updatedPreferences = [...preferences, newPreference.trim()];
+  const removeAllergy = async (index: number) => {
+    if (!user) return;
+
+    const currentAllergies = user.preferences?.allergies || [];
+    const currentPreferences = user.preferences?.preferredMaterials || [];
+    const updatedAllergies = currentAllergies.filter((_, i) => i !== index);
+    
+    const updatedUser = {
+      ...user,
+      preferences: {
+        ...user.preferences,
+        allergies: updatedAllergies
+      }
+    };
+    
+    try {
+      await updatePreferencesOnBackend(updatedUser, updatedAllergies, currentPreferences);
+      toast({ title: 'Usunięto alergię' });
+    } catch (error) {
       setUser({
         ...user,
         preferences: {
           ...user.preferences,
-          preferredMaterials: updatedPreferences
+          allergies: currentAllergies
         }
       });
-      setNewPreference('');
+      toast({
+        title: 'Błąd',
+        description: 'Nie udało się usunąć alergii',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const addPreference = async () => {
+    if (!newPreference.trim() || !user) return;
+
+    const preferenceToAdd = newPreference.trim();
+    const currentAllergies = user.preferences?.allergies || [];
+    const currentPreferences = user.preferences?.preferredMaterials || [];
+    const updatedPreferences = [...currentPreferences, preferenceToAdd];
+    
+    const updatedUser = {
+      ...user,
+      preferences: {
+        ...user.preferences,
+        preferredMaterials: updatedPreferences
+      }
+    };
+    
+    setNewPreference('');
+
+    try {
+      await updatePreferencesOnBackend(updatedUser, currentAllergies, updatedPreferences);
       toast({ title: 'Dodano preferencję' });
-    }
-  };
-
-  const removePreference = (index: number) => {
-    if (user) {
-      const updatedPreferences = preferences.filter((_, i) => i !== index);
+    } catch (error) {
       setUser({
         ...user,
         preferences: {
           ...user.preferences,
-          preferredMaterials: updatedPreferences
+          preferredMaterials: currentPreferences
         }
+      });
+      toast({
+        title: 'Błąd',
+        description: 'Nie udało się dodać preferencji',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const removePreference = async (index: number) => {
+    if (!user) return;
+
+    const currentAllergies = user.preferences?.allergies || [];
+    const currentPreferences = user.preferences?.preferredMaterials || [];
+    const updatedPreferences = currentPreferences.filter((_, i) => i !== index);
+    
+    const updatedUser = {
+      ...user,
+      preferences: {
+        ...user.preferences,
+        preferredMaterials: updatedPreferences
+      }
+    };
+    
+    try {
+      await updatePreferencesOnBackend(updatedUser, currentAllergies, updatedPreferences);
+      toast({ title: 'Usunięto preferencję' });
+    } catch (error) {
+      setUser({
+        ...user,
+        preferences: {
+          ...user.preferences,
+          preferredMaterials: currentPreferences
+        }
+      });
+      toast({
+        title: 'Błąd',
+        description: 'Nie udało się usunąć preferencji',
+        variant: 'destructive'
       });
     }
   };
