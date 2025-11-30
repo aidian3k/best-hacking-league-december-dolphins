@@ -70,7 +70,7 @@ public class DataLoader implements CommandLineRunner {
                 .password(passwordEncoder.encode("influencer123"))
                 .isInfluencer(true)
                 .products(new HashSet<>())
-                .profilePicture(restTemplate.getForObject("https://upload.wikimedia.org/wikipedia/commons/4/43/Kylie_Jenner2_%28cropped%29.png", byte[].class))
+                .profilePicture(restTemplate.getForObject("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTguNUbYXI50tG9bX8iItFYfwA4ks7NLIcGRA&s", byte[].class))
                 .build();
 
         User influencer2 = User.builder()
@@ -79,7 +79,7 @@ public class DataLoader implements CommandLineRunner {
                 .password(passwordEncoder.encode("influencer123"))
                 .isInfluencer(true)
                 .products(new HashSet<>())
-                .profilePicture(restTemplate.getForObject("https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Brad_Pitt-69858.jpg/960px-Brad_Pitt-69858.jpg", byte[].class))
+                .profilePicture(restTemplate.getForObject("https://fwcdn.pl/fph/97/11/10039711/1277428_1.2.jpg", byte[].class))
                 .build();
 
         // Zapisanie użytkowników
