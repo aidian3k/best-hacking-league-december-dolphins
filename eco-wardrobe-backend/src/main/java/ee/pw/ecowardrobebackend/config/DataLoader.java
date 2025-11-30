@@ -17,7 +17,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -95,10 +94,10 @@ public class DataLoader implements CommandLineRunner {
                 "1234567890123",
                 "Koszulka z bawełny organicznej",
                 "Koszulki",
-                "EcoWear",
-                "Basic Tee 2024",
-                95, // 95% organic cotton
-                5,  // 5% elastane
+                "EkoUbrania",
+                "Podstawowa Koszulka 2024",
+                95,
+                5,
                 12.5,
                 150.0,
                 45.0,
@@ -112,8 +111,8 @@ public class DataLoader implements CommandLineRunner {
                 "2345678901234",
                 "Dżinsy z recyklingu",
                 "Spodnie",
-                "GreenDenim",
-                "Slim Fit Eco",
+                "Zielony Denim",
+                "Slim Fit Eko",
                 80,
                 20,
                 25.8,
@@ -130,8 +129,8 @@ public class DataLoader implements CommandLineRunner {
                 "3456789012345",
                 "Bluza z konopi",
                 "Bluzy",
-                "NatureCloth",
-                "Comfort Hood",
+                "Naturalne Ubrania",
+                "Wygodna Bluza",
                 70,
                 30,
                 18.3,
@@ -147,8 +146,8 @@ public class DataLoader implements CommandLineRunner {
                 "4567890123456",
                 "Zestaw skarpetek bambusowych",
                 "Skarpety",
-                "BambooComfort",
-                "Daily Essentials",
+                "Bambusowy Komfort",
+                "Codzienne Niezbędniki",
                 100,
                 0,
                 2.1,
@@ -165,8 +164,8 @@ public class DataLoader implements CommandLineRunner {
                 "5678901234567",
                 "Sweter z wełny merino",
                 "Bluzy",
-                "WoolCraft",
-                "Alpine Warmth",
+                "Wełniane Rzemiosło",
+                "Alpejskie Ciepło",
                 100,
                 0,
                 35.2,
@@ -183,8 +182,8 @@ public class DataLoader implements CommandLineRunner {
                 "6789012345678",
                 "Lniana sukienka designerska",
                 "Inne",
-                "LuxeLinen",
-                "Summer Breeze",
+                "Luksusowy Len",
+                "Letnia Bryza",
                 100,
                 0,
                 22.4,
@@ -200,8 +199,8 @@ public class DataLoader implements CommandLineRunner {
                 "7890123456789",
                 "Ekologiczna kurtka skórzana",
                 "Inne",
-                "EcoLeather Co",
-                "Urban Classic",
+                "Eko Skóra Sp. z o.o.",
+                "Miejski Klasyk",
                 100,
                 0,
                 45.7,
@@ -217,8 +216,8 @@ public class DataLoader implements CommandLineRunner {
                 "8901234567890",
                 "Bluzka z organicznego jedwabiu",
                 "Koszulki",
-                "SilkNature",
-                "Elegant Flow",
+                "Naturalny Jedwab",
+                "Elegancki Przepływ",
                 100,
                 0,
                 28.9,
@@ -235,8 +234,8 @@ public class DataLoader implements CommandLineRunner {
                 "9012345678901",
                 "Kurtka z recyklingowanego poliestru",
                 "Inne",
-                "ReWear Tech",
-                "Urban Shield",
+                "Ponowne Ubranie Tech",
+                "Miejska Ochrona",
                 100,
                 0,
                 32.1,
@@ -252,8 +251,8 @@ public class DataLoader implements CommandLineRunner {
                 "0123456789012",
                 "Spodnie chino z tencelu",
                 "Spodnie",
-                "TencelWear",
-                "Smart Casual",
+                "Tencel Ubrania",
+                "Elegancki Casual",
                 95,
                 5,
                 19.6,
@@ -269,8 +268,8 @@ public class DataLoader implements CommandLineRunner {
                 "1234567890124",
                 "Ekologiczne sneakersy",
                 "Inne",
-                "GreenSteps",
-                "Urban Walk",
+                "Zielone Kroki",
+                "Miejski Spacer",
                 60,
                 40,
                 38.4,
@@ -289,10 +288,10 @@ public class DataLoader implements CommandLineRunner {
         userRepository.save(influencer1);
         userRepository.save(influencer2);
 
-        System.out.println("Test data loaded successfully!");
-        System.out.println("Regular users: Jan Kowalski, Anna Nowak, Piotr Wiśniewski");
-        System.out.println("Influencers: Marta Stylowa, Karol Modny");
-        System.out.println("Total products created: 11");
+        System.out.println("Dane testowe załadowane pomyślnie!");
+        System.out.println("Zwykli użytkownicy: Jan Kowalski, Anna Nowak, Piotr Wiśniewski");
+        System.out.println("Influencerzy: Marta Stylowa, Karol Modny");
+        System.out.println("Łączna liczba utworzonych produktów: 11");
     }
 
     private Product createProduct(
@@ -309,7 +308,7 @@ public class DataLoader implements CommandLineRunner {
             Double recycledContent,
             String imageUrl
     ) {
-        // Product Information
+        // Informacje o produkcie
         ProductInformation productInfo = new ProductInformation(
                 gtin,
                 productName,
@@ -318,7 +317,7 @@ public class DataLoader implements CommandLineRunner {
                 model
         );
 
-        // Material Compositions
+        // Skład materiałowy
         List<MaterialComposition> materials = new ArrayList<>();
         materials.add(MaterialComposition.builder()
                 .materialName(getMaterialName(productName, true))
@@ -333,52 +332,52 @@ public class DataLoader implements CommandLineRunner {
                     .build());
         }
 
-        // Environment Impact
+        // Wpływ na środowisko
         ProductEnvironmentImpact environmentImpact = new ProductEnvironmentImpact(
                 carbonFootprint,
                 waterUsage,
                 energyUsage,
                 recycledContent,
-                Arrays.asList("None detected")
+                Arrays.asList("Nie wykryto")
         );
 
-        // Manufacturing
+        // Produkcja
         Manufacturing manufacturing = new Manufacturing(
-                new Producer(brand + " Manufacturer", "Green Valley Industrial Zone, Poland", "contact@" + brand.toLowerCase().replace(" ", "") + ".com"),
+                new Producer(brand + " Producent", "Strefa Przemysłowa Zielona Dolina, Polska", "kontakt@" + brand.toLowerCase().replace(" ", "") + ".com"),
                 Arrays.asList(
-                        new ProductionSite("Poland", "FAC-001", Arrays.asList("Weaving", "Dyeing")),
-                        new ProductionSite("Portugal", "FAC-002", Arrays.asList("Assembly", "Quality Control"))
+                        new ProductionSite("Polska", "FAB-001", Arrays.asList("Tkanie", "Barwienie")),
+                        new ProductionSite("Portugalia", "FAB-002", Arrays.asList("Montaż", "Kontrola Jakości"))
                 ),
                 LocalDateTime.now().minusMonths(6).toString()
         );
 
-        // Durability and Care
+        // Trwałość i pielęgnacja
         DurabilityAndCare durability = new DurabilityAndCare(
                 200,
-                "Machine wash at 30°C, tumble dry low, iron medium heat",
-                new Repairability("Medium", true, "https://repair." + brand.toLowerCase().replace(" ", "") + ".com")
+                "Prać w pralce w 30°C, suszyć w suszarce na niskiej temperaturze, prasować na średniej temperaturze",
+                new Repairability("Średnia", true, "https://naprawa." + brand.toLowerCase().replace(" ", "") + ".com")
         );
 
-        // End of Life
+        // Koniec życia produktu
         EndOfLife endOfLife = new EndOfLife(
                 85.0,
-                "https://recycle." + brand.toLowerCase().replace(" ", "") + ".com/disassembly",
+                "https://recykling." + brand.toLowerCase().replace(" ", "") + ".com/demontaz",
                 Arrays.asList(
-                        new TakeBackProgram("Green Return Program", "https://" + brand.toLowerCase().replace(" ", "") + ".com/takeback"),
-                        new TakeBackProgram("Textile Recycling Initiative", "https://recycling-network.eu")
+                        new TakeBackProgram("Zielony Program Zwrotów", "https://" + brand.toLowerCase().replace(" ", "") + ".com/zwroty"),
+                        new TakeBackProgram("Inicjatywa Recyklingu Tekstyliów", "https://siec-recyklingu.eu")
                 )
         );
 
-        // Supply Chain
+        // Łańcuch dostaw
         SupplyChainTraceability supplyChain = new SupplyChainTraceability(
                 Arrays.asList(
-                        new SupplyChainStage("Raw Material", "Organic Cotton Farm Co-op", "Turkey", "GOTS"),
-                        new SupplyChainStage("Fabric Production", "EcoTextile Mills", "Poland", "OEKO-TEX"),
-                        new SupplyChainStage("Manufacturing", brand + " Manufacturer", "Portugal", "Fair Trade")
+                        new SupplyChainStage("Surowiec", "Spółdzielnia Gospodarstw Bawełny Organicznej", "Turcja", "GOTS"),
+                        new SupplyChainStage("Produkcja Tkanin", "Zakłady EkoTekstylne", "Polska", "OEKO-TEX"),
+                        new SupplyChainStage("Produkcja", brand + " Producent", "Portugalia", "Sprawiedliwy Handel")
                 )
         );
 
-        // Metadata
+        // Metadane
         Metadata metadata = new Metadata(
                 LocalDateTime.now().minusMonths(6).toString(),
                 LocalDateTime.now().toString(),
@@ -403,32 +402,32 @@ public class DataLoader implements CommandLineRunner {
             String lowerName = productName.toLowerCase();
 
             if (lowerName.contains("bawełny") || lowerName.contains("cotton")) {
-                return "Organic Cotton";
+                return "Bawełna organiczna";
             } else if (lowerName.contains("dżinsy") || lowerName.contains("denim")) {
-                return "Recycled Denim";
+                return "Recyklingowany denim";
             } else if (lowerName.contains("konopi") || lowerName.contains("hemp")) {
-                return "Hemp";
+                return "Konopie";
             } else if (lowerName.contains("bambusowych") || lowerName.contains("bamboo")) {
-                return "Bamboo Fiber";
+                return "Włókno bambusowe";
             } else if (lowerName.contains("wełny") || lowerName.contains("wool") || lowerName.contains("merino")) {
-                return "Merino Wool";
+                return "Wełna merino";
             } else if (lowerName.contains("lniana") || lowerName.contains("linen")) {
-                return "Organic Linen";
+                return "Organiczny len";
             } else if (lowerName.contains("skórzana") || lowerName.contains("leather")) {
-                return "Sustainable Leather";
+                return "Zrównoważona skóra";
             } else if (lowerName.contains("jedwabiu") || lowerName.contains("silk")) {
-                return "Organic Silk";
+                return "Organiczny jedwab";
             } else if (lowerName.contains("poliestru") || lowerName.contains("polyester")) {
-                return "Recycled Polyester";
+                return "Recyklingowany poliester";
             } else if (lowerName.contains("tencelu") || lowerName.contains("tencel")) {
                 return "Tencel Lyocell";
             } else if (lowerName.contains("sneakersy") || lowerName.contains("buty") || lowerName.contains("shoes")) {
-                return "Recycled Rubber";
+                return "Recyklingowana guma";
             } else {
-                return "Organic Cotton"; // domyślny materiał
+                return "Bawełna organiczna"; // domyślny materiał
             }
         } else {
-            return "Elastane";
+            return "Elastan";
         }
     }
 }
