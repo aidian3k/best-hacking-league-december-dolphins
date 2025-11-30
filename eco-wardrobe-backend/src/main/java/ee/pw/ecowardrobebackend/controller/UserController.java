@@ -1,7 +1,6 @@
 package ee.pw.ecowardrobebackend.controller;
 
 import ee.pw.ecowardrobebackend.dto.user.AddUserPhotoRequestDTO;
-import ee.pw.ecowardrobebackend.dto.user.ModifyPreferencesRequestDTO;
 import ee.pw.ecowardrobebackend.dto.user.UserDTO;
 import ee.pw.ecowardrobebackend.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -24,10 +23,5 @@ class UserController {
     public UserDTO addProfilePicture(@RequestBody AddUserPhotoRequestDTO addUserPhotoRequestDTO, @PathVariable
                                                      UUID userId) {
         return userService.addUserPhoto(addUserPhotoRequestDTO, userId);
-    }
-
-    @PostMapping("/modify-preferences/{userId}")
-    public UserDTO modifyPreferences(@RequestBody ModifyPreferencesRequestDTO modifyPreferencesRequestDTO, @PathVariable UUID userId) {
-        return userService.modifyPreferencesFor(modifyPreferencesRequestDTO, userId);
     }
 }

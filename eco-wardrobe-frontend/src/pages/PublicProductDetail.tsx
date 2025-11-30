@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ProductDetails } from '@/components/scanner/ProductDetails';
 import { useProductsQuery } from '@/api/products';
-import { useSavedWardrobesQuery } from '@/api/wardrobeShare';
+import { useSavedWardrobesQuery, useInfluencerWardrobesQuery } from '@/api/wardrobeShare';
 import { calculateWardrobeStats, emptyWardrobeStats } from '@/services/wardrobeStats';
 import { ArrowLeft } from 'lucide-react';
 import { useMemo } from 'react';
@@ -12,12 +12,23 @@ export default function PublicProductDetail() {
   const navigate = useNavigate();
   const { data: products, isLoading } = useProductsQuery(influencerId || null);
   const { data: savedWardrobes } = useSavedWardrobesQuery();
+  const { data: influencerWardrobes } = useInfluencerWardrobesQuery();
 
   const wardrobeUser = useMemo(() => {
-    if (!savedWardrobes || !influencerId) return null;
-    const wardrobe = savedWardrobes.find(w => w.user.id === influencerId);
-    return wardrobe ? wardrobe.user : null;
-  }, [savedWardrobes, influencerId]);
+    if (!influencerId) return null;
+    
+    if (savedWardrobes) {
+      const wardrobe = savedWardrobes.find(w => w.user.id === influencerId);
+      if (wardrobe) return wardrobe.user;
+    }
+    
+    if (influencerWardrobes) {
+      const wardrobe = influencerWardrobes.find(w => w.user.id === influencerId);
+      if (wardrobe) return wardrobe.user;
+    }
+    
+    return null;
+  }, [savedWardrobes, influencerWardrobes, influencerId]);
 
   const user = useMemo(() => {
     if (wardrobeUser) {
