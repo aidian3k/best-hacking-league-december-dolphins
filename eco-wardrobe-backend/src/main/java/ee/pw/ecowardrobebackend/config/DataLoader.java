@@ -70,7 +70,7 @@ public class DataLoader implements CommandLineRunner {
                 .password(passwordEncoder.encode("influencer123"))
                 .isInfluencer(true)
                 .products(new HashSet<>())
-                .profilePicture(restTemplate.getForObject("https://images.immediate.co.uk/production/volatile/sites/64/2024/11/kylie-jenner-rozjasnila-brwi-feacd49.jpg?quality=90&crop=0px,0px,1024px,682px&resize=980,654", byte[].class))
+                .profilePicture(restTemplate.getForObject("https://upload.wikimedia.org/wikipedia/commons/4/43/Kylie_Jenner2_%28cropped%29.png", byte[].class))
                 .build();
 
         User influencer2 = User.builder()
@@ -79,7 +79,7 @@ public class DataLoader implements CommandLineRunner {
                 .password(passwordEncoder.encode("influencer123"))
                 .isInfluencer(true)
                 .products(new HashSet<>())
-                .profilePicture(restTemplate.getForObject("https://plus.unsplash.com/premium_photo-1689977927774-401b12d137d6?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8bWFuJTIwcHJvZmlsZSUyMHBpY3R1cmV8ZW58MHx8MHx8fDA%3D", byte[].class))
+                .profilePicture(restTemplate.getForObject("https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Brad_Pitt-69858.jpg/960px-Brad_Pitt-69858.jpg", byte[].class))
                 .build();
 
         // Zapisanie użytkowników
