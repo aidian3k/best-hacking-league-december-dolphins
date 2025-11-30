@@ -270,7 +270,7 @@ export function ProductDetails({
 
       {/* Negative traits warning */}
       {hasNegativeTraits && !isGoodChoice && (
-        <div className="mx-4 -mt-2 mb-4">
+        <div className="mx-4 mt-2 mb-6">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}

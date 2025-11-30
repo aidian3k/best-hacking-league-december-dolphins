@@ -76,11 +76,18 @@ export function convertBackendProductToDPP(backendProduct: any): DigitalProductP
       brand: backendProduct.productInformation?.brand || '',
       model: backendProduct.productInformation?.model || '',
     },
-    materialComposition: (backendProduct.materialCompositions || []).map((mc: any) => ({
-      material: mc.materialName || '',
-      percentage: mc.compositionPercentage || 0,
-      certifications: mc.certifications || [],
-    })),
+    materialComposition: (backendProduct.materialCompositions || []).map((mc: any) => {
+      console.log('🔍 Material composition from backend:', {
+        materialName: mc.materialName,
+        compositionPercentage: mc.compositionPercentage,
+        certifications: mc.certifications
+      });
+      return {
+        material: mc.materialName || '',
+        percentage: mc.compositionPercentage || 0,
+        certifications: mc.certifications || [],
+      };
+    }),
     environmentalImpact: {
       carbonFootprint_kgCO2e: backendProduct.productEnvironmentImpact?.carbonFootprintKgCO2e || 0,
       waterUsage_liters: backendProduct.productEnvironmentImpact?.waterUsageLiters || 0,
@@ -136,17 +143,77 @@ export function convertBackendProductToDPP(backendProduct: any): DigitalProductP
 
 import { calculateProductEcoScore } from '@/services/ecoScore';
 
+/**
+ * Checks if a material is natural based on its name (supports both Polish and English)
+ */
+function isNaturalMaterial(materialName: string): boolean {
+  const lowerName = materialName.toLowerCase();
+
+  // Natural materials in English and Polish
+  const naturalKeywords = [
+    'cotton', 'bawełn',  // Cotton
+    'wool', 'wełn',       // Wool
+    'silk', 'jedwab',     // Silk
+    'linen', 'len',       // Linen
+    'hemp', 'konop',      // Hemp
+    'bamboo', 'bambus',   // Bamboo
+    'alpaca', 'alpaka',   // Alpaca
+    'merino',             // Merino
+    'leather', 'skór',    // Leather (animal-based, considered natural)
+    'cashmere', 'kaszmir', // Cashmere
+    'tencel', 'lyocell',  // Tencel/Lyocell (wood-based)
+    'viscose', 'wiskoz',  // Viscose (wood-based)
+    'modal',              // Modal (wood-based)
+    'rayon',              // Rayon (wood-based)
+    'jute', 'juta',       // Jute
+    'ramie',              // Ramie
+  ];
+
+  // Synthetic materials that should NOT be considered natural
+  const syntheticKeywords = [
+    'polyester', 'poliester',
+    'nylon', 'poliamid',
+    'elastan', 'spandex', 'lycra',
+    'acrylic', 'akryl',
+    'polypropylene', 'polipropylen',
+  ];
+
+  // Check if it's synthetic first
+  for (const keyword of syntheticKeywords) {
+    if (lowerName.includes(keyword)) {
+      return false;
+    }
+  }
+
+  // Check if it's natural
+  for (const keyword of naturalKeywords) {
+    if (lowerName.includes(keyword)) {
+      return true;
+    }
+  }
+
+  // Default to false if unknown
+  return false;
+}
+
 export function convertDPPtoProduct(dpp: DigitalProductPassport | { productPassport: DigitalProductPassport }): any {
   const passport = 'productPassport' in dpp ? dpp.productPassport : dpp;
   
   const ecoScore = calculateProductEcoScore(passport);
 
-  const materials = passport.materialComposition.map(m => ({
-    name: m.material,
-    percentage: m.percentage,
-    isNatural: ['Cotton', 'Wool', 'Silk', 'Linen', 'Hemp', 'Bamboo', 'Alpaca'].includes(m.material),
-    isRecycled: m.certifications.some(c => c.toLowerCase().includes('recycled'))
-  }));
+  const materials = passport.materialComposition.map(m => {
+    const material = {
+      name: m.material,
+      percentage: m.percentage,
+      isNatural: isNaturalMaterial(m.material),
+      isRecycled: m.certifications.some(c => c.toLowerCase().includes('recycled')) ||
+                  m.material.toLowerCase().includes('recykling') ||
+                  m.material.toLowerCase().includes('recycled') ||
+                  m.certifications.some(c => c.toLowerCase().includes('grs'))
+    };
+    console.log('🎨 Converted material:', material);
+    return material;
+  });
 
   const recyclability =
     passport.endOfLife.recyclabilityPercentage >= 80 ? 'full' :

@@ -21,16 +21,20 @@ export function calculateWardrobeStats(products: Product[]): WardrobeStats {
   const avgEcoScore = Math.round(products.reduce((sum, p) => sum + p.ecoScore, 0) / totalItems);
   const ecoProductsPercent = Math.round((products.filter(p => p.ecoScore >= 60).length / totalItems) * 100);
   
-  let totalNatural = 0;
-  let totalSynthetic = 0;
+  // Calculate natural vs synthetic materials percentage
+  // For each product, calculate its natural percentage, then average across all products
+  let totalNaturalPercent = 0;
   products.forEach(p => {
+    let productNaturalPercent = 0;
     p.materials.forEach(m => {
-      if (m.isNatural) totalNatural += m.percentage;
-      else totalSynthetic += m.percentage;
+      if (m.isNatural) {
+        productNaturalPercent += m.percentage;
+      }
     });
+    totalNaturalPercent += productNaturalPercent;
   });
-  const totalMaterials = totalNatural + totalSynthetic;
-  const naturalMaterialsPercent = Math.round((totalNatural / totalMaterials) * 100);
+
+  const naturalMaterialsPercent = Math.round(totalNaturalPercent / totalItems);
   const syntheticMaterialsPercent = 100 - naturalMaterialsPercent;
 
   const recyclablePercent = Math.round((products.filter(p => p.recyclability !== 'none').length / totalItems) * 100);
