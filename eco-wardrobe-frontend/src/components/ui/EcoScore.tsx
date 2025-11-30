@@ -53,7 +53,7 @@ export function EcoScore({
         className
       )}
     >
-      {score}
+      {score}%
     </div>
   );
 
