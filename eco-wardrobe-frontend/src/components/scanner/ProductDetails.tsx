@@ -20,7 +20,8 @@ import {
   Factory,
   MapPin,
   Award,
-  Zap
+  Zap,
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -32,6 +33,7 @@ interface ProductDetailsProps {
   wardrobeAvgScore?: number;
   onAddToWardrobe: () => void;
   onScanAgain: () => void;
+  onCancel?: () => void;
   isInWardrobe?: boolean;
   isPublic?: boolean;
   influencerName?: string;
@@ -43,6 +45,7 @@ export function ProductDetails({
   wardrobeAvgScore = 65,
   onAddToWardrobe, 
   onScanAgain,
+  onCancel,
   isInWardrobe = false,
   isPublic = false,
   influencerName
@@ -86,8 +89,19 @@ export function ProductDetails({
     <motion.div
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-background min-h-screen pb-32"
+      className="bg-background min-h-screen pb-32]"
     >
+      {/* Cancel button (X) in top-right corner */}
+      {onCancel && (
+        <button
+          onClick={onCancel}
+          className="fixed top-4 right-4 z-50 p-2 rounded-full bg-background/80 backdrop-blur-sm border border-border shadow-lg hover:bg-muted transition-colors safe-top"
+          aria-label="Anuluj"
+        >
+          <X className="w-5 h-5 text-muted-foreground" />
+        </button>
+      )}
+
       {/* GOOD/BAD CHOICE HERO BANNER */}
       <div className={cn(
         'px-4 py-6 text-center',
@@ -542,8 +556,8 @@ export function ProductDetails({
       </div>
 
       {/* Action Buttons */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border safe-bottom">
-        <div className="flex gap-3 max-w-lg mx-auto">
+      <div className="mt-5 p-4 bg-background border-t border-border safe-bottom">
+        <div className="flex gap-3 max-w-lg mx-auto mb-3">
           {isPublic ? (
             <Button
               variant="outline"

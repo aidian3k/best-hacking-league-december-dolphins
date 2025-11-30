@@ -8,6 +8,8 @@ import { calculateWardrobeStats, mockProducts } from '@/data/mockData';
 import { Product } from '@/types/product';
 import { DigitalProductPassport, convertDPPtoProduct } from '@/types/digitalProductPassport';
 import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/contexts/UserContext';
+import { addProductToWardrobe } from '@/api/products';
 
 type ScannerState = 'idle' | 'scanning' | 'result' | 'error';
 
@@ -19,6 +21,7 @@ export default function Scanner() {
   const [showCamera, setShowCamera] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useUser();
 
   const wardrobeStats = calculateWardrobeStats(mockProducts);
 
@@ -71,13 +74,57 @@ export default function Scanner() {
     }
   };
 
-  const handleAddToWardrobe = () => {
-    toast({
-      title: 'Dodano do szafy!',
-      description: `${scannedProduct?.name} został dodany do Twojej szafy.`,
-    });
-    navigate('/wardrobe');
+  const handleAddToWardrobe = async () => {
+    if (!user?.id) {
+      toast({
+        title: 'Błąd',
+        description: 'Musisz być zalogowany, aby dodać produkt do szafy.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!passport) {
+      toast({
+        title: 'Błąd',
+        description: 'Brak danych produktu do zapisania.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      // Wywołanie API z userId, passport i opcjonalnie obrazem
+      await addProductToWardrobe(user.id, passport, scannedProduct?.image);
+
+      toast({
+        title: 'Dodano do szafy!',
+        description: `${scannedProduct?.name} został dodany do Twojej szafy.`,
+      });
+      navigate('/wardrobe');
+    } catch (error) {
+      console.error('Error adding product to wardrobe:', error);
+      toast({
+        title: 'Błąd',
+        description: error instanceof Error ? error.message : 'Nie udało się dodać produktu do szafy.',
+        variant: 'destructive',
+      });
+    }
   };
+
+  const handleCancelScan = () => {
+    // Reset and go back to scanner
+    setScannedProduct(null);
+    setPassport(null);
+    setState('idle');
+    setShowCamera(true);
+
+    toast({
+      title: 'Skan anulowany',
+      description: 'Możesz zeskanować kolejny produkt.',
+    });
+  };
+
 
   const handleScanAgain = () => {
     setScannedProduct(null);
@@ -91,7 +138,7 @@ export default function Scanner() {
   };
 
   return (
-    <AppLayout showNav={!showCamera}>
+    <AppLayout showNav={false}>
       <AnimatePresence mode="wait">
         {showCamera ? (
           <ScannerView
@@ -108,6 +155,7 @@ export default function Scanner() {
             wardrobeAvgScore={wardrobeStats.avgEcoScore}
             onAddToWardrobe={handleAddToWardrobe}
             onScanAgain={handleScanAgain}
+            onCancel={handleCancelScan}
           />
         ) : null}
       </AnimatePresence>

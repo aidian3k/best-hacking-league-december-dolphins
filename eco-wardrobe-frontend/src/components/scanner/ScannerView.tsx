@@ -130,7 +130,7 @@ export function ScannerView({ onScan, onClose, isScanning }: ScannerViewProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-foreground z-50 flex flex-col"
+      className="pt-8 px-8 fixed inset-0 bg-foreground z-50 flex flex-col"
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4 safe-top">
