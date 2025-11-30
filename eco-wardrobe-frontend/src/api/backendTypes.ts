@@ -69,3 +69,27 @@ export interface BackendWardrobeItemsDTO {
   products: BackendProduct[];
 }
 
+export interface BackendUserDTO {
+  id: string;
+  email: string;
+  name: string;
+}
+
+export interface BackendSavedWardrobeItemDTO {
+  user: BackendUserDTO;
+  products: BackendProduct[];
+}
+
+export interface BackendSavedWardrobeResponseDTO {
+  savedWardrobeItems: BackendSavedWardrobeItemDTO[];
+}
+
+export interface BackendWardrobeShareResponseDTO {
+  id: string;
+  shareCode: string;
+}
+
+export interface BackendAddWardrobeShareRequestDTO {
+  shareCode: string;
+}
+

@@ -151,7 +151,6 @@ export default function Scanner() {
           <ProductDetails
             key="product"
             product={scannedProduct}
-            passport={passport || undefined}
             wardrobeAvgScore={wardrobeStats.avgEcoScore}
             onAddToWardrobe={handleAddToWardrobe}
             onScanAgain={handleScanAgain}

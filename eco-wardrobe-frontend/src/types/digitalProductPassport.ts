@@ -176,7 +176,8 @@ export function convertDPPtoProduct(dpp: DigitalProductPassport | { productPassp
       secondHand: false,
       careInstructions: [passport.durabilityAndCare.washInstructions],
       facts: generateFacts(passport),
-      addedAt: new Date()
+      addedAt: new Date(),
+      passport
     }
   };
 }

@@ -1,3 +1,5 @@
+import { DigitalProductPassport } from './digitalProductPassport';
+
 export type Category = 'koszulki' | 'bluzy' | 'spodnie' | 'skarpety' | 'inne';
 
 export type EcoRating = 'excellent' | 'good' | 'medium' | 'poor' | 'bad';
@@ -28,6 +30,7 @@ export interface Product {
   careInstructions: string[];
   facts: string[];
   addedAt: Date;
+  passport?: DigitalProductPassport;
 }
 
 export interface WardrobeStats {

@@ -1,5 +1,4 @@
 import { Product, categoryLabels, ecoRatingLabels } from '@/types/product';
-import { DigitalProductPassport } from '@/types/digitalProductPassport';
 import { EcoScore, EcoScoreBar } from '@/components/ui/EcoScore';
 import { ProductImagePlaceholder } from '@/components/ui/ProductImagePlaceholder';
 import { motion } from 'framer-motion';
@@ -29,7 +28,6 @@ import { cn, getProductImageUrl, fileToBase64, base64ToDataUrl } from '@/lib/uti
 
 interface ProductDetailsProps {
   product: Product;
-  passport?: DigitalProductPassport;
   wardrobeAvgScore?: number;
   onAddToWardrobe: () => void;
   onScanAgain: () => void;
@@ -41,7 +39,6 @@ interface ProductDetailsProps {
 
 export function ProductDetails({ 
   product, 
-  passport,
   wardrobeAvgScore = 65,
   onAddToWardrobe, 
   onScanAgain,
@@ -50,6 +47,7 @@ export function ProductDetails({
   isPublic = false,
   influencerName
 }: ProductDetailsProps) {
+  const passport = product.passport;
   const [showAllFacts, setShowAllFacts] = useState(false);
   const [showSupplyChain, setShowSupplyChain] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -139,7 +137,7 @@ export function ProductDetails({
               className="w-full aspect-[4/3] object-cover"
             />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background to-transparent h-24" />
-            {uploadedImage && (
+            {uploadedImage && !isPublic && (
               <button
                 onClick={() => setUploadedImage(null)}
                 className="absolute top-4 left-4 bg-background/90 backdrop-blur-sm text-foreground px-3 py-1.5 rounded-full text-xs font-medium shadow-lg hover:bg-background transition-colors flex items-center gap-1.5"
@@ -165,32 +163,36 @@ export function ProductDetails({
             </div>
             <div className="text-center px-6 sm:px-8">
               <p className="font-medium text-foreground mb-1 text-xs sm:text-sm md:text-base">Brak zdjęcia produktu</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">Dodaj własne zdjęcie z galerii lub aparatu</p>
+              {!isPublic && (
+                <p className="text-xs sm:text-sm text-muted-foreground">Dodaj własne zdjęcie z galerii lub aparatu</p>
+              )}
             </div>
-            <label htmlFor="image-upload" className="cursor-pointer">
-              <input
-                id="image-upload"
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleImageUpload}
-                className="hidden"
-                disabled={isUploading}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 text-xs sm:text-sm pointer-events-none"
-                disabled={isUploading}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 sm:w-4 sm:h-4">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="17 8 12 3 7 8"/>
-                  <line x1="12" y1="3" x2="12" y2="15"/>
-                </svg>
-                {isUploading ? 'Wczytywanie...' : 'Dodaj zdjęcie'}
-              </Button>
-            </label>
+            {!isPublic && (
+              <label htmlFor="image-upload" className="cursor-pointer">
+                <input
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  disabled={isUploading}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 text-xs sm:text-sm pointer-events-none"
+                  disabled={isUploading}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 sm:w-4 sm:h-4">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                  {isUploading ? 'Wczytywanie...' : 'Dodaj zdjęcie'}
+                </Button>
+              </label>
+            )}
           </div>
         )}
         <div className="absolute bottom-4 right-4">
