@@ -6,19 +6,19 @@ import { ProductCard } from '@/components/wardrobe/ProductCard';
 import { CategoryFilter } from '@/components/wardrobe/CategoryFilter';
 import { WardrobeStatsMini } from '@/components/wardrobe/WardrobeStats';
 import { useProductsQuery } from '@/api/products';
+import { useShareWardrobeMutation } from '@/api/wardrobeShare';
 import { useUser } from '@/contexts/UserContext';
 import { calculateWardrobeStats, emptyWardrobeStats } from '@/services/wardrobeStats';
 import { Category } from '@/types/product';
 import { ScanLine, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 
 export default function Wardrobe() {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all');
   const { user } = useUser();
   const { data: products, isLoading } = useProductsQuery(user?.id || null);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const shareWardrobeMutation = useShareWardrobeMutation();
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -34,10 +34,7 @@ export default function Wardrobe() {
   }, [products]);
 
   const handleShare = () => {
-    toast({
-      title: 'Link skopiowany!',
-      description: 'Twoja szafa jest teraz dostępna dla znajomych.',
-    });
+    shareWardrobeMutation.mutate();
   };
 
   return (

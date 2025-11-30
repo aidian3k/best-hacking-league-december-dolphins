@@ -7,7 +7,7 @@ const navItems = [
   { path: '/wardrobe', label: 'Szafa', icon: Shirt },
   { path: '/analytics', label: 'Analiza', icon: BarChart3 },
   { path: '/scanner', label: 'Skanuj', icon: ScanLine, isMain: true },
-  { path: '/influencers', label: 'Odkryj', icon: Users },
+  { path: '/discover-wardrobes', label: 'Odkryj', icon: Users },
   { path: '/settings', label: 'Profil', icon: Settings },
 ];
 

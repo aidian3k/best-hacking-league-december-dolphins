@@ -2,8 +2,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ProductDetails } from '@/components/scanner/ProductDetails';
 import { useProductsQuery } from '@/api/products';
+import { useSavedWardrobesQuery } from '@/api/wardrobeShare';
 import { calculateWardrobeStats, emptyWardrobeStats } from '@/services/wardrobeStats';
-import { mockInfluencers } from '@/data/mockData';
 import { ArrowLeft } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -11,10 +11,23 @@ export default function PublicProductDetail() {
   const { influencerId, productId } = useParams<{ influencerId: string; productId: string }>();
   const navigate = useNavigate();
   const { data: products, isLoading } = useProductsQuery(influencerId || null);
+  const { data: savedWardrobes } = useSavedWardrobesQuery();
 
-  const influencer = useMemo(() => {
-    return mockInfluencers.find(i => i.id === influencerId);
-  }, [influencerId]);
+  const wardrobeUser = useMemo(() => {
+    if (!savedWardrobes || !influencerId) return null;
+    const wardrobe = savedWardrobes.find(w => w.user.id === influencerId);
+    return wardrobe ? wardrobe.user : null;
+  }, [savedWardrobes, influencerId]);
+
+  const user = useMemo(() => {
+    if (wardrobeUser) {
+      return {
+        id: wardrobeUser.id,
+        name: wardrobeUser.name,
+      };
+    }
+    return null;
+  }, [wardrobeUser]);
 
   const product = useMemo(() => {
     if (!products || !productId) return null;
@@ -38,11 +51,21 @@ export default function PublicProductDetail() {
     );
   }
 
-  if (!influencer) {
+  if (!user) {
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
           <p className="text-muted-foreground mb-4">Nie znaleziono szafy</p>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!products || products.length === 0) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+          <p className="text-muted-foreground mb-4">Szafa jest pusta</p>
         </div>
       </AppLayout>
     );
@@ -80,7 +103,7 @@ export default function PublicProductDetail() {
           onAddToWardrobe={handleBack}
           onScanAgain={handleBack}
           isPublic={true}
-          influencerName={influencer.name}
+          influencerName={user.name}
         />
       </div>
     </AppLayout>

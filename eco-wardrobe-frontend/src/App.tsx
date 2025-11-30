@@ -9,7 +9,7 @@ import Auth from "./pages/Auth";
 import Wardrobe from "./pages/Wardrobe";
 import Scanner from "./pages/Scanner";
 import Analytics from "./pages/Analytics";
-import Influencers from "./pages/Influencers";
+import DiscoverWardrobes from "./pages/DiscoverWardrobes";
 import Settings from "./pages/Settings";
 import PublicWardrobe from "./pages/PublicWardrobe";
 import PublicProductDetail from "./pages/PublicProductDetail";
@@ -52,10 +52,10 @@ const App = () => (
               }
             />
             <Route
-              path="/influencers"
+              path="/discover-wardrobes"
               element={
                 <ProtectedRoute>
-                  <Influencers />
+                  <DiscoverWardrobes />
                 </ProtectedRoute>
               }
             />
